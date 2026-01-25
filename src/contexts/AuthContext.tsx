@@ -187,6 +187,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .update({ full_name: updates.name })
         .eq('id', user.id);
 
+      // If this user is a salon partner, keep the salons table in sync so
+      // admin/leaderboard views show the updated name as well.
+      if (user.role === 'salon') {
+        await supabase
+          .from('salons')
+          .update({ name: updates.name })
+          .eq('profile_id', user.id);
+      }
+
       updatedUser = {
         ...updatedUser,
         name: updates.name,
