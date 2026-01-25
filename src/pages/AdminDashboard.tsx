@@ -394,7 +394,7 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="p-4 space-y-6 max-w-5xl mx-auto">
+    <div className="p-4 space-y-6 max-w-5xl mx-auto overflow-x-hidden">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
@@ -608,7 +608,7 @@ const AdminDashboard = () => {
                   : 'এখনো কোনো পণ্য বিক্রির ডেটা নেই।'}
               </p>
             ) : (
-              <div className="flex flex-col md:flex-row gap-4 h-[300px]">
+              <div className="flex flex-col md:flex-row gap-4 h-[260px]">
                 {/* Donut chart */}
                 <div className="flex-1 flex items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
@@ -619,8 +619,8 @@ const AdminDashboard = () => {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
+                        innerRadius={55}
+                        outerRadius={75}
                         paddingAngle={2}
                         labelLine={false}
                         label={false}
