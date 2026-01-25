@@ -49,6 +49,8 @@ const AdminDashboard = () => {
   const [timeRange, setTimeRange] = useState<'all' | 'month'>('all');
   const [productStats, setProductStats] = useState<ProductStat[]>([]);
   const [storeRevenue, setStoreRevenue] = useState<number>(0);
+  const [pendingPickupKg, setPendingPickupKg] = useState<number>(0);
+  const [pendingPickupCount, setPendingPickupCount] = useState<number>(0);
 
   useEffect(() => {
     const fetchSalons = async () => {
@@ -109,6 +111,25 @@ const AdminDashboard = () => {
         if (!amount) return;
         totals.set(salonId, (totals.get(salonId) || 0) + amount);
       });
+
+      // Also compute pending pickups (for dashboard metric only)
+      const { data: pendingPickups } = await supabase
+        .from('collector_pickups')
+        .select('quantity_kg, status')
+        .eq('status', 'pending');
+
+      let pendingKg = 0;
+      let pendingCount = 0;
+      (pendingPickups || []).forEach((pickup: any) => {
+        const amount = Number(pickup.quantity_kg) || 0;
+        if (amount > 0) {
+          pendingKg += amount;
+        }
+        pendingCount += 1;
+      });
+
+      setPendingPickupKg(pendingKg);
+      setPendingPickupCount(pendingCount);
 
       setSalons(
         salonsData.map((row: any) => {
@@ -356,6 +377,19 @@ const AdminDashboard = () => {
       labelEn: 'CO₂ Saved',
       labelBn: 'সিও₂ সেভড',
       color: 'bg-emerald-100 text-emerald-800',
+    },
+    {
+      icon: Cloud,
+      value: `${pendingPickupKg.toFixed(1)} Kg`,
+      labelEn:
+        pendingPickupCount > 0
+          ? `Pending pickups (${pendingPickupCount})`
+          : 'Pending pickups',
+      labelBn:
+        pendingPickupCount > 0
+          ? `বকেয়া পিকআপ (${pendingPickupCount}টি)`
+          : 'বকেয়া পিকআপ',
+      color: 'bg-muted text-muted-foreground',
     },
   ];
 
