@@ -600,7 +600,7 @@ const AdminDashboard = () => {
                 : 'পণ্যের বিক্রির বন্টন'}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-hidden">
             {productPieData.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 {language === 'en'
@@ -608,7 +608,7 @@ const AdminDashboard = () => {
                   : 'এখনো কোনো পণ্য বিক্রির ডেটা নেই।'}
               </p>
             ) : (
-              <div className="flex flex-col md:flex-row gap-4 h-[260px]">
+              <div className="flex flex-col md:flex-row gap-4 h-[240px]">
                 {/* Donut chart */}
                 <div className="flex-1 flex items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
@@ -617,10 +617,10 @@ const AdminDashboard = () => {
                         data={productPieData}
                         dataKey="value"
                         nameKey="name"
-                        cx="50%"
+                        cx="48%"
                         cy="50%"
-                        innerRadius={55}
-                        outerRadius={75}
+                        innerRadius={50}
+                        outerRadius={70}
                         paddingAngle={2}
                         labelLine={false}
                         label={false}
