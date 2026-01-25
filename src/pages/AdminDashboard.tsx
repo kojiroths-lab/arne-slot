@@ -474,13 +474,16 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={topSalons}>
+              <BarChart data={topSalons} margin={{ top: 10, right: 10, left: 0, bottom: 70 }}>
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 11 }}
                   interval={0}
+                  height={70}
+                  angle={-45}
+                  textAnchor="end"
                   tickFormatter={(value: string) =>
-                    value.length > 14 ? `${value.slice(0, 14)}...` : value
+                    value.length > 12 ? `${value.slice(0, 12)}...` : value
                   }
                 />
                 <YAxis tick={{ fontSize: 12 }} />
@@ -595,7 +598,10 @@ const AdminDashboard = () => {
                         }}
                         formatter={(value: any, _name: any, props: any) => {
                           const qty = Number(value) || 0;
-                          const percent = (props?.payload?.percent ?? 0) * 100;
+                          const percent =
+                            totalProductQuantity > 0
+                              ? (qty / totalProductQuantity) * 100
+                              : 0;
                           return [
                             `${qty} pcs (${percent.toFixed(1)}%)`,
                             props?.payload?.name,
