@@ -480,13 +480,13 @@ const AdminDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={topSalons} margin={{ top: 10, right: 10, left: 0, bottom: 80 }}>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={topSalons} margin={{ top: 10, right: 10, left: 0, bottom: 90 }}>
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 11 }}
                   interval={0}
-                  height={80}
+                  height={90}
                   angle={-35}
                   textAnchor="end"
                   tickFormatter={(value: string) =>
