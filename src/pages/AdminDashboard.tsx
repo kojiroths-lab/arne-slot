@@ -48,6 +48,7 @@ const AdminDashboard = () => {
   const [search, setSearch] = useState('');
   const [timeRange, setTimeRange] = useState<'all' | 'month'>('all');
   const [productStats, setProductStats] = useState<ProductStat[]>([]);
+  const [storeRevenue, setStoreRevenue] = useState<number>(0);
 
   useEffect(() => {
     const fetchSalons = async () => {
@@ -134,11 +135,12 @@ const AdminDashboard = () => {
       // 4) Aggregate product sales from purchases + purchase_items for store analytics
       const { data: purchasesData } = await supabase
         .from('purchases')
-        .select('id, purchased_at, purchase_items (product_name, quantity, unit_price)')
+        .select('id, total_amount, purchased_at, purchase_items (product_name, quantity, unit_price)')
         .order('purchased_at', { ascending: false });
 
       if (purchasesData && Array.isArray(purchasesData)) {
         const productMap = new Map<string, { quantity: number; revenue: number }>();
+        let revenueSum = 0;
 
         // Define current month window for filtering when timeRange === 'month'
         const now = new Date();
@@ -153,6 +155,8 @@ const AdminDashboard = () => {
               return;
             }
           }
+
+          revenueSum += Number(purchase.total_amount) || 0;
 
           (purchase.purchase_items || []).forEach((item: any) => {
             const name = item.product_name || 'Unknown';
@@ -175,8 +179,10 @@ const AdminDashboard = () => {
 
         stats.sort((a, b) => b.totalQuantity - a.totalQuantity);
         setProductStats(stats);
+        setStoreRevenue(revenueSum);
       } else {
         setProductStats([]);
+        setStoreRevenue(0);
       }
 
       setLoading(false);
@@ -198,7 +204,8 @@ const AdminDashboard = () => {
     () => withTotals.reduce((sum, s) => sum + s.totalWaste, 0),
     [withTotals]
   );
-  const totalRevenue = totalWaste * 20;
+  const payoutToSalons = totalWaste * 20; // BDT paid out for supplied hair
+  const totalRevenue = storeRevenue - payoutToSalons;
   const activePartners = withTotals.length;
   const co2Saved = totalWaste * 2.5;
 
