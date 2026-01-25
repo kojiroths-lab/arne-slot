@@ -97,10 +97,11 @@ const AdminDashboard = () => {
         totals.set(salonId, (totals.get(salonId) || 0) + amount);
       });
 
-      // 3) Add all quantities from collector_pickups (already keyed by salons.id)
+      // 3) Add all quantities from completed collector_pickups (already keyed by salons.id)
       const { data: pickups } = await supabase
         .from('collector_pickups')
-        .select('salon_id, quantity_kg');
+        .select('salon_id, quantity_kg, status')
+        .eq('status', 'completed');
 
       (pickups || []).forEach((pickup: any) => {
         const salonId = String(pickup.salon_id);
