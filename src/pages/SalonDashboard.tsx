@@ -34,45 +34,65 @@ const SalonDashboard = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
+  const [pickups, setPickups] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchLogs = async () => {
+    const fetchLogsAndPickups = async () => {
       if (!user?.id) return;
 
-      const { data, error } = await supabase
-        .from('salon_weekly_logs')
-        .select('*')
-        .eq('salon_id', user.id)
-        .order('week_start_date', { ascending: false });
+      const [{ data: logData, error: logError }, { data: salonRow }] = await Promise.all([
+        supabase
+          .from('salon_weekly_logs')
+          .select('*')
+          .eq('salon_id', user.id)
+          .order('week_start_date', { ascending: false }),
+        supabase
+          .from('salons')
+          .select('id')
+          .eq('profile_id', user.id)
+          .maybeSingle(),
+      ]);
 
-      if (!error && data) {
-        setLogs(data);
+      if (!logError && logData) {
+        setLogs(logData);
+      }
+
+      if (salonRow?.id) {
+        const { data: pickupData } = await supabase
+          .from('collector_pickups')
+          .select('*')
+          .eq('salon_id', salonRow.id)
+          .order('created_at', { ascending: false });
+
+        if (pickupData) {
+          setPickups(pickupData);
+        }
       }
     };
 
-    fetchLogs();
+    fetchLogsAndPickups();
   }, [user?.id]);
 
-  const totalKg = logs.reduce(
-    (sum, log) => sum + (Number(log.waste_kg) || 0),
-    0
-  );
-  const totalEarnings = logs.reduce(
-    (sum, log) => sum + (Number(log.income) || 0),
+  const completedPickups = pickups.filter((p) => p.status === 'completed');
+
+  const totalKg = completedPickups.reduce(
+    (sum, pickup) => sum + (Number(pickup.quantity_kg) || 0),
     0
   );
 
-  const weeklySupplyData = logs
-    .map(log => ({
-      day: log.week_start_date,
-      kg: Number(log.waste_kg) || 0,
+  const totalEarnings = totalKg * 20;
+
+  const weeklySupplyData = completedPickups
+    .map((pickup) => ({
+      day: pickup.completed_at || pickup.scheduled_at || pickup.created_at,
+      kg: Number(pickup.quantity_kg) || 0,
     }))
     .reverse();
 
-  const incomeGrowthData = logs
-    .map(log => ({
-      month: log.week_start_date,
-      bdt: Number(log.income) || 0,
+  const incomeGrowthData = completedPickups
+    .map((pickup) => ({
+      month: pickup.completed_at || pickup.scheduled_at || pickup.created_at,
+      bdt: (Number(pickup.quantity_kg) || 0) * 20,
     }))
     .reverse();
 
@@ -115,6 +135,7 @@ const SalonDashboard = () => {
       .single();
 
     if (!error && data) {
+      setLogs(current => [data, ...current]);
       // Also create a pending pickup entry for collectors
       const { data: salonRow } = await supabase
         .from('salons')
@@ -123,16 +144,23 @@ const SalonDashboard = () => {
         .maybeSingle();
 
       if (salonRow?.id) {
-        await supabase.from('collector_pickups').insert({
-          salon_id: salonRow.id,
-          status: 'pending',
-          quantity_kg: weightValue,
-          scheduled_at: date,
-          notes: null,
-        });
+        const { data: pickupRow } = await supabase
+          .from('collector_pickups')
+          .insert({
+            salon_id: salonRow.id,
+            status: 'pending',
+            quantity_kg: weightValue,
+            scheduled_at: date,
+            notes: null,
+          })
+          .select('*')
+          .single();
+
+        if (pickupRow) {
+          setPickups((current) => [pickupRow, ...current]);
+        }
       }
 
-      setLogs(current => [data, ...current]);
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -359,14 +387,14 @@ const SalonDashboard = () => {
           <CardTitle className="text-base">{t('history')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {logs.length === 0 ? (
+          {pickups.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               {language === 'en' ? 'No logs yet' : 'এখনো কোনো লগ নেই'}
             </p>
           ) : (
-            logs.slice(0, 5).map((log) => (
+            pickups.slice(0, 5).map((pickup) => (
               <div
-                key={log.id}
+                key={pickup.id}
                 className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -375,25 +403,26 @@ const SalonDashboard = () => {
                   </div>
                   <div>
                     <p className="font-medium text-foreground">
-                      {Number(log.waste_kg || 0)} {t('kg')}
+                      {Number(pickup.quantity_kg || 0)} {t('kg')}
                     </p>
-                    <p className="text-sm text-muted-foreground">{log.week_start_date}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {pickup.completed_at || pickup.scheduled_at || pickup.created_at}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-foreground">
-                    {t('bdt')} {Number(log.income || 0)}
+                    {t('bdt')} {(Number(pickup.quantity_kg || 0) * 20).toFixed(0)}
                   </p>
-                  {log.photo_url && (
-                    <a
-                      href={log.photo_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-primary underline"
-                    >
-                      {language === 'en' ? 'View photo' : 'ছবি দেখুন'}
-                    </a>
-                  )}
+                  <p className="text-xs">
+                    {pickup.status === 'completed'
+                      ? language === 'en'
+                        ? 'Completed'
+                        : 'সম্পন্ন'
+                      : language === 'en'
+                        ? 'Pending'
+                        : 'বকেয়া'}
+                  </p>
                 </div>
               </div>
             ))
