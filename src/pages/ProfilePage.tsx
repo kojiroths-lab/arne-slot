@@ -18,6 +18,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { ADMIN_EMAILS } from '@/config/adminAccess';
 
 const ProfilePage = () => {
   const { user, logout, updateUser, upgradeAccount } = useAuth();
@@ -38,6 +39,8 @@ const ProfilePage = () => {
   const [collectorName, setCollectorName] = useState(user?.name || '');
   const [collectorPhone, setCollectorPhone] = useState(user?.phone || '');
   const [collectorNid, setCollectorNid] = useState('');
+
+  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email);
 
   const handleLogout = () => {
     logout();
@@ -270,8 +273,8 @@ const ProfilePage = () => {
         </Card>
       </motion.div>
 
-      {/* Upgrade Account Section (only for farmers) */}
-      {user?.role === 'farmer' && (
+      {/* Upgrade Account Section (only for non-admin farmers) */}
+      {user?.role === 'farmer' && !isAdmin && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
