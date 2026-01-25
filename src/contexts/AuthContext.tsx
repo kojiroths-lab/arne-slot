@@ -196,6 +196,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           .eq('profile_id', user.id);
       }
 
+      // Also sync Supabase Auth user metadata so the name persists consistently
+      // for all roles (including farmers) across sessions.
+      await supabase.auth.updateUser({
+        data: { full_name: updates.name },
+      });
+
       updatedUser = {
         ...updatedUser,
         name: updates.name,
