@@ -226,7 +226,7 @@ const AdminDashboard = () => {
     () => withTotals.reduce((sum, s) => sum + s.totalWaste, 0),
     [withTotals]
   );
-  const payoutToSalons = totalWaste * 20; // BDT paid out for supplied hair
+  const payoutToSalons = totalWaste * 50; // BDT paid out for supplied hair
   const totalRevenue = storeRevenue - payoutToSalons;
   const activePartners = withTotals.length;
   const co2Saved = totalWaste * 2.5;
