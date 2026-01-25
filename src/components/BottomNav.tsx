@@ -41,7 +41,7 @@ export const BottomNav = () => {
 
   return (
     <nav className="bottom-nav md:hidden">
-      <div className="flex items-center justify-around py-2">
+      <div className="flex items-center justify-between py-1 px-1 gap-1">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -49,14 +49,14 @@ export const BottomNav = () => {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={cn(
-                'flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all',
+                'flex-1 min-w-0 flex flex-col items-center gap-1 px-1 py-2 rounded-xl transition-all',
                 isActive
                   ? 'text-primary bg-primary/10'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
               <item.icon className={cn('h-5 w-5', isActive && 'animate-bounce-subtle')} />
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="text-xs font-medium truncate max-w-full">{item.label}</span>
             </button>
           );
         })}
