@@ -80,7 +80,7 @@ const SalonDashboard = () => {
     0
   );
 
-  const totalEarnings = totalKg * 20;
+  const totalEarnings = totalKg * 50;
 
   const weeklySupplyData = completedPickups
     .map((pickup) => ({
@@ -92,7 +92,7 @@ const SalonDashboard = () => {
   const incomeGrowthData = completedPickups
     .map((pickup) => ({
       month: pickup.completed_at || pickup.scheduled_at || pickup.created_at,
-      bdt: (Number(pickup.quantity_kg) || 0) * 20,
+      bdt: (Number(pickup.quantity_kg) || 0) * 50,
     }))
     .reverse();
 
@@ -100,7 +100,7 @@ const SalonDashboard = () => {
     if (!user?.id || !weight || !date) return;
 
     const weightValue = Number(weight) || 0;
-    const incomeValue = weightValue * 20; // 1 kg = 20 BDT
+    const incomeValue = weightValue * 50; // 1 kg = 50 BDT
 
     let photoUrl: string | null = null;
 
@@ -203,8 +203,8 @@ const SalonDashboard = () => {
         </div>
         <p className="text-white/70 text-sm">
           {language === 'en' 
-            ? `Earning ৳20 per kg of waste supplied` 
-            : `প্রতি কেজি বর্জ্য সরবরাহে ৳২০ আয়`}
+            ? `Earning ৳50 per kg of waste supplied` 
+            : `প্রতি কেজি বর্জ্য সরবরাহে ৳৫০ আয়`}
         </p>
       </div>
 
@@ -258,7 +258,7 @@ const SalonDashboard = () => {
                   id="income"
                   type="number"
                   placeholder="0"
-                  value={weight ? (Number(weight) || 0) * 20 : 0}
+                  value={weight ? (Number(weight) || 0) * 50 : 0}
                   readOnly
                 />
               </div>
@@ -412,7 +412,7 @@ const SalonDashboard = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-foreground">
-                    {t('bdt')} {(Number(pickup.quantity_kg || 0) * 20).toFixed(0)}
+                    {t('bdt')} {(Number(pickup.quantity_kg || 0) * 50).toFixed(0)}
                   </p>
                   <p className="text-xs">
                     {pickup.status === 'completed'
