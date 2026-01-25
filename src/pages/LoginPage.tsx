@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { ADMIN_EMAILS } from '@/config/adminAccess';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -56,12 +57,18 @@ const LoginPage = () => {
               : 'অ্যাকাউন্ট তৈরি হয়েছে!'
         });
 
-        const targetPath =
-          loggedInUser.role === 'salon' || loggedInUser.role === 'collector'
-            ? '/dashboard'
-            : '/store';
+        const isAdmin = loggedInUser.email && ADMIN_EMAILS.includes(loggedInUser.email);
 
-        navigate(targetPath);
+        if (isAdmin) {
+          navigate('/admin');
+        } else {
+          const targetPath =
+            loggedInUser.role === 'salon' || loggedInUser.role === 'collector'
+              ? '/dashboard'
+              : '/store';
+
+          navigate(targetPath);
+        }
       } else {
         toast({
           title: language === 'en' ? 'Error' : 'ত্রুটি',
