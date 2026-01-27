@@ -104,240 +104,149 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-950 via-emerald-900 to-black text-white overflow-x-hidden overflow-y-auto">
-      {/* Language toggle */}
-      <div className="fixed top-4 right-4 z-40">
-        <LanguageToggle />
-      </div>
+    <div className="bg-gradient-to-b from-emerald-950 via-emerald-900 to-black text-white overflow-x-hidden overflow-y-auto">
+      {/* SECTION 1: LOGIN HERO (OLD DESIGN) */}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-4 relative overflow-hidden">
+        {/* Language toggle */}
+        <div className="absolute top-4 right-4 z-50">
+          <LanguageToggle />
+        </div>
 
-      {/* SECTION 1: HERO */}
-      <section className="relative h-screen w-full flex items-center justify-center">
-        {/* Background image with parallax-like layering */}
+        {/* Background Image Layer */}
         <div
-          className="absolute inset-0 bg-cover bg-center will-change-transform"
-          style={{
-            backgroundImage: "url('/products/11.png')",
-          }}
+          className="absolute inset-0 bg-cover bg-center opacity-20"
+          style={{ backgroundImage: "url('https://images.pexels.com/photos/8125507/pexels-photo-8125507.jpeg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-emerald-900/70" />
 
-        <div className="relative z-10 grid w-full max-w-6xl grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-8 px-6 md:px-10 lg:px-12">
-          {/* Left story column */}
+        <div className="relative z-10 w-full max-w-md">
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-elevated p-8"
           >
-            <div className="flex items-center gap-3">
+            {/* Logo */}
+            <div className="text-center mb-8">
               <img
                 src="/products/logo.png"
                 alt="AMOR"
-                className="h-16 w-16 md:h-20 md:w-20 object-contain drop-shadow-xl"
+                className="mx-auto h-32 w-32 object-contain"
               />
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/80">
-                  {language === 'en' ? 'From Waste to Wealth' : 'অবর্জনা থেকে সম্পদে'}
-                </p>
-                <p className="text-sm text-emerald-100/80">Circular Economy Network, Bangladesh</p>
-              </div>
             </div>
 
-            <div className="space-y-4 max-w-xl">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight">
-                {language === 'en'
-                  ? 'Transforming Waste into Harvest.'
-                  : 'অবর্জনাকে পরিণত করি ফসলে।'}
-              </h1>
-              <p className="text-sm md:text-base text-emerald-100/90 max-w-xl">
-                {language === 'en'
-                  ? "Bangladesh's first tech-enabled circular economy network connecting salons, collectors, and farmers to grow more with less."
-                  : 'বাংলাদেশের প্রথম টেক-সক্ষম সার্কুলার ইকোনমি নেটওয়ার্ক যেখানে সেলুনের বর্জ্য থেকে তৈরি হয় কৃষকের উপকারের জৈব পুষ্টি।'}
-              </p>
-            </div>
-
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.3, duration: 0.7 }}
-              className="inline-flex flex-wrap items-center gap-3 rounded-full bg-white/5 px-4 py-2 border border-white/10 backdrop-blur-md text-xs md:text-sm"
-            >
-              <span className="flex items-center gap-2">
-                <Leaf className="h-4 w-4 text-emerald-300" />
-                <span>🌱 100% Organic</span>
-              </span>
-              <span className="h-4 w-px bg-white/20" />
-              <span>💰 30% Cost Reduction</span>
-              <span className="h-4 w-px bg-white/20" />
-              <span>🚀 2x Yield</span>
-            </motion.div>
-          </motion.div>
-
-          {/* Right: Glassmorphism login card */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.9, ease: 'easeOut' }}
-            className="relative"
-          >
-            <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-emerald-400/40 via-emerald-300/10 to-transparent blur-xl opacity-70" />
-            <div className="relative rounded-3xl border border-white/15 bg-white/10 backdrop-blur-xl shadow-2xl p-6 md:p-8 max-w-md ml-auto">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg md:text-xl font-semibold">
-                  {mode === 'login'
-                    ? language === 'en'
-                      ? 'Welcome back'
-                      : 'পুনরায় স্বাগতম'
-                    : language === 'en'
-                    ? 'Join the circular movement'
-                    : 'সার্কুলার মুভমেন্টে যোগ দিন'}
-                </h2>
-                <span className="text-[11px] uppercase tracking-[0.16em] text-emerald-100/80">
-                  {language === 'en' ? 'Secure Portal' : 'নিরাপদ পোর্টাল'}
-                </span>
-              </div>
-
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-1.5 text-xs text-emerald-50/90">
-                  <p>
-                    {language === 'en'
-                      ? 'Use your AMOR account to connect waste sources, logistics, and farm productivity.'
-                      : 'আপনার AMOR একাউন্ট দিয়ে বর্জ্য উৎস, লজিস্টিকস ও ফসল উৎপাদনকে এক প্ল্যাটফর্মে যুক্ত করুন।'}
-                  </p>
+            {/* Login Form */}
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email">
+                  {language === 'en' ? 'Email' : 'ইমেইল'}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={language === 'en' ? 'you@example.com' : 'you@example.com'}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-3"
+                    required
+                  />
                 </div>
+              </div>
 
-                <div className="space-y-2 text-sm">
-                  <Label htmlFor="email" className="text-emerald-50/90">
-                    {language === 'en' ? 'Email' : 'ইমেইল'}
+              {mode === 'signup' && (
+                <div className="space-y-2">
+                  <Label htmlFor="phone">
+                    {language === 'en' ? 'Phone Number' : 'ফোন নম্বর'}
                   </Label>
                   <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder={language === 'en' ? 'you@example.com' : 'you@example.com'}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-3 bg-white/10 border-white/20 text-white placeholder:text-emerald-100/50 focus-visible:ring-emerald-300/70"
-                      required
+                      id="phone"
+                      type="tel"
+                      placeholder={language === 'en' ? '+880 1712-345678' : '+880 1712-345678'}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="pl-10"
+                      required={mode === 'signup'}
                     />
                   </div>
                 </div>
+              )}
 
-                {mode === 'signup' && (
-                  <div className="space-y-2 text-sm">
-                    <Label htmlFor="phone" className="text-emerald-50/90">
-                      {language === 'en' ? 'Phone Number' : 'ফোন নম্বর'}
-                    </Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-100/70" />
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder={language === 'en' ? '+880 1712-345678' : '+880 1712-345678'}
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="pl-9 bg-white/10 border-white/20 text-white placeholder:text-emerald-100/50 focus-visible:ring-emerald-300/70"
-                        required={mode === 'signup'}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-2 text-sm">
-                  <Label htmlFor="password" className="text-emerald-50/90">
-                    {language === 'en' ? 'Password' : 'পাসওয়ার্ড'}
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-100/70" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder={
-                        language === 'en'
-                          ? 'Enter your password'
-                          : 'আপনার পাসওয়ার্ড লিখুন'
-                      }
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-9 bg-white/10 border-white/20 text-white placeholder:text-emerald-100/50 focus-visible:ring-emerald-300/70"
-                      required
-                    />
-                  </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">
+                  {language === 'en' ? 'Password' : 'পাসওয়ার্ড'}
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder={
+                      language === 'en'
+                        ? 'Enter your password'
+                        : 'আপনার পাসওয়ার্ড লিখুন'
+                    }
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
                 </div>
+              </div>
 
-                <Button
-                  type="submit"
-                  className="w-full rounded-full bg-emerald-500 hover:bg-emerald-400 text-white border border-emerald-300/40 shadow-lg shadow-emerald-900/40"
-                  size="lg"
-                  disabled={isLoading}
-                >
-                  {isLoading
-                    ? language === 'en'
-                      ? mode === 'login'
-                        ? 'Logging in...'
-                        : 'Creating account...'
-                      : mode === 'login'
-                      ? 'লগইন করা হচ্ছে...'
-                      : 'অ্যাকাউন্ট তৈরি হচ্ছে...'
-                    : language === 'en'
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={isLoading}
+              >
+                {isLoading
+                  ? language === 'en'
                     ? mode === 'login'
-                      ? 'Login'
-                      : 'Sign Up'
+                      ? 'Logging in...'
+                      : 'Creating account...'
                     : mode === 'login'
-                    ? 'লগইন'
-                    : 'সাইন আপ'}
-                </Button>
+                    ? 'লগইন করা হচ্ছে...'
+                    : 'অ্যাকাউন্ট তৈরি হচ্ছে...'
+                  : language === 'en'
+                  ? mode === 'login'
+                    ? 'Login'
+                    : 'Sign Up'
+                  : mode === 'login'
+                  ? 'লগইন'
+                  : 'সাইন আপ'}
+              </Button>
+            </form>
 
-                <div className="mt-3 text-center text-xs text-emerald-50/80">
-                  {mode === 'login' ? (
-                    <>
-                      <span>
-                        {language === 'en'
-                          ? "Don't have an account?"
-                          : 'অ্যাকাউন্ট নেই?'}
-                      </span>{' '}
-                      <button
-                        type="button"
-                        onClick={() => setMode('signup')}
-                        className="font-semibold text-emerald-200 hover:text-emerald-100 transition-colors"
-                      >
-                        {language === 'en' ? 'Sign up' : 'সাইন আপ করুন'}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span>
-                        {language === 'en'
-                          ? 'Already have an account?'
-                          : 'আগে থেকেই অ্যাকাউন্ট আছে?'}
-                      </span>{' '}
-                      <button
-                        type="button"
-                        onClick={() => setMode('login')}
-                        className="font-semibold text-emerald-200 hover:text-emerald-100 transition-colors"
-                      >
-                        {language === 'en' ? 'Log in' : 'লগইন করুন'}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </form>
-
-              <div className="mt-4 flex items-center gap-2 text-[11px] text-emerald-100/70">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-200/30">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                </span>
-                <p>
-                  {language === 'en'
-                    ? 'End-to-end encrypted. Your farm and business data stays protected.'
-                    : 'সম্পূর্ণ এনক্রিপ্টেড। আপনার কৃষি ও ব্যবসার তথ্য নিরাপদে সংরক্ষিত থাকে।'}
-                </p>
-              </div>
+            {/* Switch between Login and Sign Up */}
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              {mode === 'login' ? (
+                <>
+                  <span>{language === 'en' ? "Don't have an account?" : 'অ্যাকাউন্ট নেই?'}</span>{' '}
+                  <button
+                    type="button"
+                    onClick={() => setMode('signup')}
+                    className="font-semibold text-primary hover:underline"
+                  >
+                    {language === 'en' ? 'Sign up' : 'সাইন আপ করুন'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span>{language === 'en' ? 'Already have an account?' : 'আগে থেকেই অ্যাকাউন্ট আছে?'}</span>{' '}
+                  <button
+                    type="button"
+                    onClick={() => setMode('login')}
+                    className="font-semibold text-primary hover:underline"
+                  >
+                    {language === 'en' ? 'Log in' : 'লগইন করুন'}
+                  </button>
+                </>
+              )}
             </div>
           </motion.div>
         </div>
-      </section>
+      </div>
 
       {/* SECTION 2: URBAN IMPACT */}
       <section className="relative min-h-[80vh] bg-gradient-to-b from-emerald-50 via-emerald-50 to-emerald-100 text-emerald-950 py-16 md:py-24 px-6 md:px-10 lg:px-16">
@@ -416,7 +325,7 @@ const LoginPage = () => {
               <div className="absolute -inset-4 bg-emerald-400/30 blur-3xl rounded-3xl" />
               <div className="relative overflow-hidden rounded-3xl shadow-2xl border border-emerald-100/70 bg-emerald-900/10">
                 <motion.img
-                  src="/products/12.png"
+                  src="/images/rooftop.jpg"
                   alt="Rooftop Garden"
                   initial={{ scale: 1.08, y: 0 }}
                   whileInView={{ scale: 1.02, y: -4 }}
@@ -528,7 +437,7 @@ const LoginPage = () => {
               <div className="absolute -inset-6 bg-emerald-300/30 blur-3xl rounded-3xl" />
               <div className="relative overflow-hidden rounded-3xl border border-emerald-200/60 bg-emerald-900/40 shadow-2xl">
                 <motion.img
-                  src="/products/13.png"
+                  src="/images/soil.jpg"
                   alt="Healthy Soil and Sapling"
                   initial={{ scale: 1.1, y: 8 }}
                   whileInView={{ scale: 1.02, y: 0 }}
