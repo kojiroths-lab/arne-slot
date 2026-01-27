@@ -25,6 +25,8 @@ interface AuthContextType {
       salonName?: string;
       salonAddress?: string;
       salonPhone?: string;
+      salonLat?: number;
+      salonLng?: number;
       collectorName?: string;
       collectorPhone?: string;
       collectorNid?: string;
@@ -224,6 +226,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       salonName?: string;
       salonAddress?: string;
       salonPhone?: string;
+      salonLat?: number;
+      salonLng?: number;
       collectorName?: string;
       collectorPhone?: string;
       collectorNid?: string;
@@ -251,6 +255,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         name: options?.salonName || user.name || 'Salon',
         address: options?.salonAddress || '',
         phone: options?.salonPhone || user.phone,
+        lat: typeof options?.salonLat === 'number' ? options.salonLat : null,
+        lng: typeof options?.salonLng === 'number' ? options.salonLng : null,
         week1_kg: 0,
         week2_kg: 0,
         week3_kg: 0,
