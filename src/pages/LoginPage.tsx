@@ -115,7 +115,7 @@ const LoginPage = () => {
         {/* Background Image Layer */}
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://images.pexels.com/photos/8125507/pexels-photo-8125507.jpeg')" }}
+          style={{ backgroundImage: "url('/images/farmer-hero.jpg')" }}
         />
         {/* Soft white wash overlay to match old design */}
         <div className="absolute inset-0 bg-white/70" />
@@ -464,6 +464,99 @@ const LoginPage = () => {
                 </div>
               </div>
             </div>
+          </motion.div>
+        </div>
+      </section>
+      {/* SECTION 3: RURAL EMPOWERMENT / GOLDEN REVOLUTION */}
+      <section className="relative min-h-[80vh] bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 text-emerald-950 py-16 md:py-24 px-6 md:px-10 lg:px-16 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-60 bg-[radial-gradient(circle_at_0%_0%,rgba(245,158,11,0.16),transparent_55%),radial-gradient(circle_at_100%_100%,rgba(16,185,129,0.25),transparent_55%)]" />
+        <div className="relative max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-[45%_55%] gap-10 items-stretch">
+          {/* Right on desktop, top on mobile: Farmer image */}
+          <motion.div
+            variants={fadeUpVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="order-1 md:order-2"
+          >
+            <div className="relative w-full h-full max-h-[520px] md:max-h-none">
+              <div className="absolute -inset-4 bg-amber-300/30 blur-3xl rounded-3xl" />
+              <div className="relative h-full overflow-hidden rounded-3xl shadow-2xl border border-amber-100/70 bg-emerald-900/5">
+                <motion.img
+                  src="/images/farmer-sunset.jpg"
+                  alt="Farmer with AMOR Drum"
+                  initial={{ scale: 1.08, y: 6 }}
+                  whileInView={{ scale: 1.02, y: 0 }}
+                  transition={{ duration: 1.2, ease: 'easeOut' }}
+                  viewport={{ once: true }}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/60 via-transparent to-transparent" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Left on desktop, bottom on mobile: Text / Impact Grid */}
+          <motion.div
+            variants={fadeUpVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="order-2 md:order-1 flex flex-col justify-center space-y-6"
+          >
+            <div className="space-y-3">
+              <p className="text-[11px] md:text-xs uppercase tracking-[0.3em] text-amber-400">
+                RURAL EMPOWERMENT
+              </p>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-emerald-950 leading-tight">
+                Feeding the Nation, Preserving the Soil.
+              </h2>
+              <p className="text-sm md:text-base text-emerald-900/80 leading-relaxed">
+                For decades, our farmers have battled rising costs and degrading soil. AMOR changes the
+                equation. By delivering high-potency bio-stimulants directly to the village level, we
+                empower the backbone of our economy to grow more, spend less, and heal the land for
+                future generations.
+              </p>
+              <p className="text-sm md:text-base text-emerald-900/90 leading-relaxed">
+                যুগ যুগ ধরে আমাদের কৃষকরা মাটির উর্বরতা হারানো এবং সারের দাম বৃদ্ধির সাথে লড়াই করছেন।
+                AMOR সেই দিন বদলাচ্ছে। আমরা সরাসরি গ্রামের কৃষকের হাতে পৌঁছে দিচ্ছি উচ্চমানের জৈব সার,
+                যা ফলন বাড়ায় এবং মাটির প্রাণ ফিরিয়ে আনে।
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs md:text-sm">
+              <div className="rounded-2xl bg-white shadow-sm border border-emerald-100/70 p-4 flex flex-col gap-1">
+                <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-500">Yield</p>
+                <p className="text-lg md:text-xl font-semibold text-emerald-950">20% Increase</p>
+                <p className="text-emerald-900/70">More grain per acre, season after season.</p>
+              </div>
+
+              <div className="rounded-2xl bg-white shadow-sm border border-emerald-100/70 p-4 flex flex-col gap-1">
+                <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-500">Cost</p>
+                <p className="text-lg md:text-xl font-semibold text-emerald-950">30% Savings</p>
+                <p className="text-emerald-900/70">On chemical urea, without compromising yield.</p>
+              </div>
+
+              <div className="rounded-2xl bg-white shadow-sm border border-emerald-100/70 p-4 flex flex-col gap-1">
+                <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-500">Soil</p>
+                <p className="text-lg md:text-xl font-semibold text-emerald-950">100% Regenerative</p>
+                <p className="text-emerald-900/70">Restores pH and supports living, breathing soil.</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 text-xs md:text-sm font-medium text-emerald-800 hover:text-emerald-900 group w-fit"
+            >
+              <span className="border-b border-emerald-700/60 group-hover:border-emerald-900 transition-colors">
+                Learn more
+              </span>
+              <span className="translate-x-0 group-hover:translate-x-1 transition-transform">
+                →
+              </span>
+            </button>
           </motion.div>
         </div>
       </section>
