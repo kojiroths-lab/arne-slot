@@ -168,6 +168,68 @@ const CropDoctor = () => {
       // Convert image to base64
       const base64Image = await convertImageToBase64(selectedImage);
 
+      // Step 1: list available models via v1beta
+      const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      const listResponse = await fetch(listUrl);
+
+      if (!listResponse.ok) {
+        const errorText = await listResponse.text().catch(() => listResponse.statusText);
+        console.error('Gemini model listing failed:', listResponse.status, listResponse.statusText, errorText);
+        toast({
+          title: language === 'en' ? 'Model Discovery Failed' : 'মডেল খুঁজে পাওয়া যায়নি',
+          description:
+            language === 'en'
+              ? 'API connection worked, but model listing failed. Check Google Cloud permissions and Generative Language API access.'
+              : 'API সংযোগ হয়েছে, কিন্তু মডেল লিস্টিং ব্যর্থ হয়েছে। Google Cloud permissions এবং Generative Language API access পরীক্ষা করুন।',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const modelsData = await listResponse.json();
+      console.log('[Gemini] Available models (raw response):', modelsData);
+
+      const models: any[] = Array.isArray(modelsData.models) ? modelsData.models : [];
+
+      if (!models.length) {
+        toast({
+          title: language === 'en' ? 'No Models Found' : 'কোন মডেল পাওয়া যায়নি',
+          description:
+            language === 'en'
+              ? 'API connection successful, but ZERO models found. Check Google Cloud permissions and Generative Language API access.'
+              : 'API সংযোগ ঠিক আছে, কিন্তু কোনও মডেল পাওয়া যায়নি। Google Cloud permissions এবং Generative Language API access পরীক্ষা করুন।',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Step 2: find the first valid Gemini model that supports generateContent
+      const matchingModel = models.find((m: any) => {
+        const name: string | undefined = m.name;
+        const methods: string[] | undefined = m.supportedGenerationMethods;
+        return (
+          typeof name === 'string' &&
+          name.toLowerCase().includes('gemini') &&
+          Array.isArray(methods) &&
+          methods.includes('generateContent')
+        );
+      });
+
+      if (!matchingModel || !matchingModel.name) {
+        toast({
+          title: language === 'en' ? 'No Compatible Models' : 'কোনো উপযুক্ত মডেল নেই',
+          description:
+            language === 'en'
+              ? 'API connection successful, but no Gemini models with generateContent were found. Check Google Cloud permissions.'
+              : 'API সংযোগ ঠিক আছে, কিন্তু generateContent সমর্থনসহ কোনও Gemini মডেল পাওয়া যায়নি। Google Cloud permissions পরীক্ষা করুন।',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const fullModelName: string = matchingModel.name; // e.g., "models/gemini-1.5-flash-001"
+      console.log('[Gemini] Using discovered model:', fullModelName, matchingModel);
+
       // Prompt stays the same
       const prompt = `You are an agricultural expert. Analyze this image of a plant leaf. 
 
@@ -177,86 +239,62 @@ const CropDoctor = () => {
 
 Keep it short and helpful for a farmer. Format your response in clear sections with markdown.`;
 
-      // Models to try in order (multi-model fallback loop)
-      const modelsToTry = [
-        'gemini-1.5-flash',
-        'gemini-1.5-flash-latest',
-        'gemini-1.5-pro',
-        'gemini-pro-vision', // legacy backup
-      ];
+      // Step 3: call generateContent on the discovered model via REST
+      const generateUrl = `https://generativelanguage.googleapis.com/v1beta/${fullModelName}:generateContent?key=${apiKey}`;
 
-      let finalText: string | null = null;
-      let lastError: any = null;
-
-      for (const modelName of modelsToTry) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
-        const body = {
-          contents: [
-            {
-              parts: [
-                { text: prompt },
-                {
-                  inline_data: {
-                    mime_type: selectedImage.type || 'image/jpeg',
-                    data: base64Image,
-                  },
+      const body = {
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: selectedImage.type || 'image/jpeg',
+                  data: base64Image,
                 },
-              ],
-            },
-          ],
-        };
+              },
+            ],
+          },
+        ],
+      };
 
-        try {
-          console.log(`[Gemini] Trying model via REST: ${modelName}`);
+      const response = await fetch(generateUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
 
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-          });
-
-          if (!response.ok) {
-            const errorText = await response.text().catch(() => response.statusText);
-            console.warn(
-              `[Gemini] Model ${modelName} failed with status ${response.status} ${response.statusText}:`,
-              errorText,
-            );
-            throw new Error(response.statusText || `Request to Gemini API failed for model ${modelName}`);
-          }
-
-          const data = await response.json();
-
-          const text =
-            data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-            data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('').trim();
-
-          if (text && text.trim()) {
-            if (modelName !== modelsToTry[0]) {
-              console.log(`Switched to backup model: ${modelName}`);
-            }
-            finalText = String(text).trim();
-            break;
-          } else {
-            console.warn(`[Gemini] Model ${modelName} returned no text. Raw response:`, data);
-            lastError = new Error(`No text content returned from Gemini API for model ${modelName}`);
-          }
-        } catch (err: any) {
-          lastError = err;
-          console.warn(`[Gemini] Error using model ${modelName}:`, err);
-          // Continue to next model
-        }
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => response.statusText);
+        console.error('Gemini generateContent error:', response.status, response.statusText, errorText);
+        throw new Error(response.statusText || 'Request to Gemini API generateContent failed');
       }
 
-      if (!finalText) {
-        throw lastError || new Error('All Gemini models failed and returned no text.');
+      const data = await response.json();
+
+      const text =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('').trim();
+
+      if (!text) {
+        console.error('Unexpected Gemini response format from generateContent:', data);
+        throw new Error('No text content returned from Gemini generateContent API');
       }
 
-      setAnalysisResult(finalText);
+      setAnalysisResult(String(text).trim());
+
+      // Step 4: success toast with model name
+      toast({
+        title: language === 'en' ? 'Analysis Successful' : 'বিশ্লেষণ সফল',
+        description:
+          language === 'en'
+            ? `Success! Used model: ${fullModelName}`
+            : `সফল! ব্যবহৃত মডেল: ${fullModelName}`,
+      });
     } catch (error: any) {
-      console.error('CropDoctor analysis error (REST multi-model fallback):', error);
+      console.error('CropDoctor analysis error (dynamic model discovery):', error);
 
       toast({
         title: language === 'en' ? 'Analysis Failed' : 'বিশ্লেষণ ব্যর্থ',
