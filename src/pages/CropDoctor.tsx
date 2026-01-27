@@ -7,6 +7,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 // Simple markdown to HTML converter (no external dependencies)
 const markdownToHtml = (text: string): string => {
@@ -79,6 +80,7 @@ const CropDoctor = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
   const { addToCart } = useCart();
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -516,7 +518,7 @@ Do not add extra keys to this JSON.`;
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
-                className="mt-4"
+                className="mt-4 space-y-3"
               >
                 <Card className="shadow-elevated">
                   <CardHeader>
@@ -563,6 +565,22 @@ Do not add extra keys to this JSON.`;
                     </div>
                   </CardContent>
                 </Card>
+
+                <div className="flex justify-end">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                      const recommendedProducts = products.filter((p) => recommendations.includes(p.id));
+                      recommendedProducts.forEach((p) => addToCart(p));
+                      navigate('/store');
+                    }}
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    {language === 'en' ? 'Buy Now' : 'এখনই কিনুন'}
+                  </Button>
+                </div>
               </motion.div>
             )}
           </>
