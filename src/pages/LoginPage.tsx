@@ -484,7 +484,7 @@ const LoginPage = () => {
               <div className="absolute -inset-4 bg-amber-300/30 blur-3xl rounded-3xl" />
               <div className="relative h-full overflow-hidden rounded-3xl shadow-2xl border border-amber-100/70 bg-emerald-900/5">
                 <motion.img
-                  src="/images/farmer-sunset.jpg"
+                  src="/products/11.png"
                   alt="Farmer with AMOR Drum"
                   initial={{ scale: 1.08, y: 6 }}
                   whileInView={{ scale: 1.02, y: 0 }}
