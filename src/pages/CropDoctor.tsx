@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Stethoscope, Upload, Image as ImageIcon, Loader2, Sparkles } from 'lucide-react';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,20 +72,6 @@ const markdownToHtml = (text: string): string => {
   });
   
   return html;
-};
-
-// Import Google Generative AI
-let GoogleGenerativeAI: any;
-let GenerativeModel: any;
-
-// Dynamic import for Google Generative AI
-const loadGemini = async () => {
-  if (!GoogleGenerativeAI) {
-    const module = await import('@google/generative-ai');
-    GoogleGenerativeAI = module.GoogleGenerativeAI;
-    GenerativeModel = module.GenerativeModel;
-  }
-  return { GoogleGenerativeAI, GenerativeModel };
 };
 
 const CropDoctor = () => {
@@ -196,246 +183,37 @@ const CropDoctor = () => {
 
 Keep it short and helpful for a farmer. Format your response in clear sections with markdown.`;
 
-      // SOLUTION: First list available models, then use those
-      // This ensures we only try models that actually exist for this API key
-      let availableModels: string[] = [];
-      const apiVersions = ['v1', 'v1beta'];
-      
-      // Try to list available models first
-      console.log('[API] Attempting to list available models...');
-      for (const apiVersion of apiVersions) {
-        try {
-          const listUrl = `https://generativelanguage.googleapis.com/${apiVersion}/models?key=${apiKey}`;
-          const listResponse = await fetch(listUrl);
-          
-          if (listResponse.ok) {
-            const listData = await listResponse.json();
-            if (listData.models && Array.isArray(listData.models)) {
-              availableModels = listData.models
-                .map((m: any) => m.name?.replace('models/', '') || m.name)
-                .filter((name: string) => name && name.includes('gemini'))
-                .filter((name: string) => {
-                  // Only include models that support generateContent
-                  const model = listData.models.find((m: any) => 
-                    (m.name?.replace('models/', '') || m.name) === name
-                  );
-                  return model?.supportedGenerationMethods?.includes('generateContent');
-                });
-              
-              console.log(`✓ [API] Found ${availableModels.length} available models in ${apiVersion}:`, availableModels);
-              break; // Found models, exit
-            }
-          }
-        } catch (listError) {
-          console.log(`[API] Could not list models from ${apiVersion}:`, listError);
-          continue;
-        }
-      }
+      // Initialize Gemini client and model (simple, single-model setup)
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-      // If we couldn't list models, use a fallback list
-      if (availableModels.length === 0) {
-        console.log('[API] Could not list models, using fallback list');
-        availableModels = [
-          'gemini-1.5-flash',
-          'gemini-1.5-flash-latest',
-          'gemini-1.5-pro',
-          'gemini-1.5-pro-latest',
-          'gemini-pro-vision',
-        ];
-      }
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            data: base64Image,
+            mimeType,
+          },
+        },
+      ]);
 
-      // Prioritize vision-capable models
-      const visionModels = availableModels.filter(m => 
-        m.includes('flash') || m.includes('vision') || m.includes('pro')
-      );
-      const modelsToTry = [...visionModels, ...availableModels.filter(m => !visionModels.includes(m))];
-
-      let text = '';
-      let lastError: any = null;
-      let successfulModel = '';
-      let successfulApiVersion = '';
-
-      // Try REST API with available models
-      for (const apiVersion of apiVersions) {
-        for (const modelName of modelsToTry) {
-          try {
-            console.log(`[REST API] Trying ${apiVersion} with model: ${modelName}`);
-            
-            const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${apiKey}`;
-            
-            const requestBody = {
-              contents: [{
-                parts: [
-                  {
-                    inlineData: {
-                      data: base64Image,
-                      mimeType: mimeType,
-                    },
-                  },
-                  {
-                    text: prompt,
-                  },
-                ],
-              }],
-            };
-
-            const response = await fetch(url, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              const errorMsg = errorData.error?.message || response.statusText;
-              throw new Error(`HTTP ${response.status}: ${errorMsg}`);
-            }
-
-            const data = await response.json();
-            
-            // Extract text from response
-            if (data.candidates?.[0]?.content?.parts) {
-              text = data.candidates[0].content.parts
-                .map((part: any) => part.text || '')
-                .join('')
-                .trim();
-            } else if (data.text) {
-              text = data.text.trim();
-            } else {
-              throw new Error('Unexpected response format - no text found');
-            }
-
-            if (text) {
-              successfulModel = modelName;
-              successfulApiVersion = apiVersion;
-              console.log(`✓ [REST API] Successfully used ${apiVersion} API with model: ${modelName}`);
-              break; // Success, exit model loop
-            }
-          } catch (modelError: any) {
-            lastError = modelError;
-            console.log(`[REST API] Model ${modelName} with ${apiVersion} failed:`, modelError.message);
-            continue;
-          }
-        }
-
-        if (text) {
-          break; // Success, exit API version loop
-        }
-      }
-
-      // If REST API failed, try SDK as last resort
-      if (!text) {
-        console.log('[SDK] REST API failed, trying SDK as fallback...');
-        try {
-          const { GoogleGenerativeAI: GenAI } = await loadGemini();
-          const genAI = new GenAI(apiKey);
-          
-          // SDK fallback - try legacy models that might work with v1beta
-          const sdkModels = ['gemini-pro-vision', 'gemini-pro'];
-          
-          for (const modelName of sdkModels) {
-            try {
-              console.log(`[SDK] Trying model: ${modelName}`);
-              const model = genAI.getGenerativeModel({ model: modelName });
-              const result = await model.generateContent([
-                {
-                  inlineData: {
-                    data: base64Image,
-                    mimeType: mimeType,
-                  },
-                },
-                prompt,
-              ]);
-              
-              const response = await result.response;
-              text = response.text();
-              
-              if (text) {
-                successfulModel = modelName;
-                successfulApiVersion = 'v1beta (via SDK)';
-                console.log(`✓ [SDK] Successfully used model: ${modelName}`);
-                break;
-              }
-            } catch (sdkError: any) {
-              lastError = sdkError;
-              console.log(`[SDK] Model ${modelName} failed:`, sdkError.message);
-              continue;
-            }
-          }
-        } catch (sdkInitError: any) {
-          console.error('[SDK] SDK initialization failed:', sdkInitError);
-          lastError = sdkInitError;
-        }
-      }
+      const response = await result.response;
+      const text = response.text();
 
       if (!text) {
-        const errorMsg = lastError?.message || 'Unknown error';
-        console.error('All methods failed. Last error:', errorMsg);
-        console.error('Available models found:', availableModels);
-        console.error('Models tried:', modelsToTry);
-        
-        // Provide specific guidance based on error
-        let guidance = '';
-        if (errorMsg.includes('404') || errorMsg.includes('not found')) {
-          guidance = `No compatible models found. Your API key may not have access to Gemini models, or the Generative Language API may not be enabled. ` +
-            `Go to: https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com and enable the API.`;
-        } else if (errorMsg.includes('403') || errorMsg.includes('permission')) {
-          guidance = `Permission denied. Check: 1) API key is valid, 2) Generative Language API is enabled, 3) API key has correct permissions.`;
-        } else if (errorMsg.includes('401')) {
-          guidance = `Invalid API key. Verify your API key at: https://aistudio.google.com/apikey`;
-        } else if (errorMsg.includes('billing') || errorMsg.includes('quota')) {
-          guidance = `Billing or quota issue. Enable billing at: https://console.cloud.google.com/billing`;
-        } else {
-          guidance = `Please verify: 1) API key is valid, 2) Generative Language API is enabled, 3) Billing is enabled, 4) Models are available in your region.`;
-        }
-        
-        throw new Error(
-          `All API methods failed. ${guidance} ` +
-          `Last error: ${errorMsg}. ` +
-          `Available models: ${availableModels.length > 0 ? availableModels.join(', ') : 'none found'}.`
-        );
+        throw new Error('No response text received from Gemini.');
       }
-      
-      setAnalysisResult(text);
+
+      setAnalysisResult(text.trim());
     } catch (error: any) {
-      console.error('Analysis error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        status: error.status,
-        statusText: error.statusText,
-        response: error.response,
-      });
-      
-      let errorMessage = error.message || '';
-      
-      // Provide helpful error messages based on error type
-      if (errorMessage.includes('404') || errorMessage.includes('not found') || error.status === 404) {
-        errorMessage = language === 'en' 
-          ? 'Model not found. Please check your API key has access to Gemini models. Make sure your API key is valid and has the necessary permissions.'
-          : 'মডেল পাওয়া যায়নি। অনুগ্রহ করে আপনার API কী-তে Gemini মডেলগুলির অ্যাক্সেস আছে কিনা পরীক্ষা করুন।';
-      } else if (errorMessage.includes('API key') || errorMessage.includes('401') || errorMessage.includes('403') || error.status === 401 || error.status === 403) {
-        errorMessage = language === 'en'
-          ? 'Invalid or unauthorized API key. Please verify your VITE_GEMINI_API_KEY in .env file and ensure billing is enabled on your Google Cloud project.'
-          : 'অবৈধ বা অননুমোদিত API কী। অনুগ্রহ করে আপনার .env ফাইলে VITE_GEMINI_API_KEY যাচাই করুন এবং Google Cloud প্রকল্পে বিলিং সক্রিয় আছে কিনা নিশ্চিত করুন।';
-      } else if (errorMessage.includes('quota') || errorMessage.includes('429') || error.status === 429) {
-        errorMessage = language === 'en'
-          ? 'API quota exceeded. Please check your usage limits or enable billing.'
-          : 'API কোটা অতিক্রম করেছে। অনুগ্রহ করে আপনার ব্যবহারের সীমা পরীক্ষা করুন বা বিলিং সক্রিয় করুন।';
-      } else if (errorMessage.includes('billing') || errorMessage.includes('payment')) {
-        errorMessage = language === 'en'
-          ? 'Billing not enabled. Please enable billing on your Google Cloud project to use the Gemini API.'
-          : 'বিলিং সক্রিয় নেই। Gemini API ব্যবহার করতে অনুগ্রহ করে আপনার Google Cloud প্রকল্পে বিলিং সক্রিয় করুন।';
-      } else if (!errorMessage || errorMessage === '') {
-        errorMessage = language === 'en'
-          ? `Failed to analyze the image. Error: ${error.status || 'Unknown'}. Please check your API key, network connection, and try again.`
-          : `ছবি বিশ্লেষণ করতে ব্যর্থ। ত্রুটি: ${error.status || 'অজানা'}। অনুগ্রহ করে আপনার API কী, নেটওয়ার্ক সংযোগ পরীক্ষা করুন এবং আবার চেষ্টা করুন।`;
-      }
-      
+      console.error('CropDoctor analysis error:', error);
+
       toast({
         title: language === 'en' ? 'Analysis Failed' : 'বিশ্লেষণ ব্যর্থ',
-        description: errorMessage,
+        description:
+          language === 'en'
+            ? 'Could not analyze the image right now. Please check your API key and try again in a moment.'
+            : 'এই মুহূর্তে ছবিটি বিশ্লেষণ করা সম্ভব হয়নি। অনুগ্রহ করে আপনার API কী পরীক্ষা করুন এবং কিছুক্ষণ পরে আবার চেষ্টা করুন।',
         variant: 'destructive',
       });
     } finally {
