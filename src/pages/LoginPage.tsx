@@ -115,7 +115,7 @@ const LoginPage = () => {
         {/* Background Image Layer */}
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/images/farmer-hero.jpg')" }}
+          style={{ backgroundImage: "url('https://images.pexels.com/photos/8125507/pexels-photo-8125507.jpeg')" }}
         />
         {/* Soft white wash overlay to match old design */}
         <div className="absolute inset-0 bg-white/70" />
