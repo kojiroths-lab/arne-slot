@@ -35,6 +35,8 @@ const SalonDashboard = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   const [pickups, setPickups] = useState<any[]>([]);
+  const [updatingLocation, setUpdatingLocation] = useState(false);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLogsAndPickups = async () => {
@@ -88,6 +90,75 @@ const SalonDashboard = () => {
       kg: Number(pickup.quantity_kg) || 0,
     }))
     .reverse();
+
+  const handleUpdateLocation = async () => {
+    if (!user?.id || typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+      setLocationMessage(
+        language === 'en'
+          ? 'Location services not available on this device.'
+          : 'এই ডিভাইসে লোকেশন সার্ভিস চালু নয়।'
+      );
+      return;
+    }
+
+    setUpdatingLocation(true);
+    setLocationMessage(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        const { data: salonRow } = await supabase
+          .from('salons')
+          .select('id')
+          .eq('profile_id', user.id)
+          .maybeSingle();
+
+        if (!salonRow?.id) {
+          setLocationMessage(
+            language === 'en'
+              ? 'No salon profile found to update.'
+              : 'আপডেট করার জন্য কোনো সেলুন প্রোফাইল পাওয়া যায়নি।'
+          );
+          setUpdatingLocation(false);
+          return;
+        }
+
+        const { error } = await supabase
+          .from('salons')
+          .update({ lat: latitude, lng: longitude })
+          .eq('id', salonRow.id);
+
+        if (error) {
+          setLocationMessage(
+            language === 'en'
+              ? 'Failed to update shop location.'
+              : 'দোকানের অবস্থান আপডেট করা যায়নি।'
+          );
+        } else {
+          setLocationMessage(
+            language === 'en'
+              ? 'Shop location updated successfully.'
+              : 'দোকানের অবস্থান সফলভাবে আপডেট হয়েছে।'
+          );
+        }
+
+        setUpdatingLocation(false);
+      },
+      () => {
+        setUpdatingLocation(false);
+        setLocationMessage(
+          language === 'en'
+            ? 'Could not access GPS location.'
+            : 'জিপিএস অবস্থান পাওয়া যায়নি।'
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+      }
+    );
+  };
 
   const incomeGrowthData = completedPickups
     .map((pickup) => ({
@@ -181,6 +252,26 @@ const SalonDashboard = () => {
         <p className="text-muted-foreground">
           {language === 'en' ? 'Your salon dashboard' : 'আপনার সেলুন ড্যাশবোর্ড'}
         </p>
+      </div>
+
+      <div className="flex flex-col gap-2 animate-fade-up">
+        <Button
+          variant="outline"
+          className="w-full justify-center"
+          onClick={handleUpdateLocation}
+          disabled={updatingLocation}
+        >
+          {updatingLocation
+            ? language === 'en'
+              ? 'Updating shop location...'
+              : 'দোকানের অবস্থান আপডেট হচ্ছে...'
+            : language === 'en'
+            ? '📍 Update Shop Location'
+            : '📍 দোকানের অবস্থান আপডেট করুন'}
+        </Button>
+        {locationMessage && (
+          <p className="text-xs text-muted-foreground text-center">{locationMessage}</p>
+        )}
       </div>
 
       {/* Earnings Card */}
