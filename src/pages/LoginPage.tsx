@@ -120,11 +120,11 @@ const LoginPage = () => {
         {/* Soft white wash overlay to match old design */}
         <div className="absolute inset-0 bg-white/70" />
 
-        <div className="relative z-10 w-full max-w-sm md:max-w-md">
+        <div className="relative z-10 w-full max-w-xs sm:max-w-sm md:max-w-md">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-elevated p-6 md:p-8"
+            className="bg-white rounded-2xl shadow-elevated p-4 sm:p-6 md:p-8"
           >
             {/* Logo */}
             <div className="text-center mb-8">
