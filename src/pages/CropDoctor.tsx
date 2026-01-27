@@ -177,60 +177,93 @@ const CropDoctor = () => {
 
 Keep it short and helpful for a farmer. Format your response in clear sections with markdown.`;
 
-      // Construct REST API request body using v1beta format
-      const body = {
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              {
-                inline_data: {
-                  mime_type: selectedImage.type || 'image/jpeg',
-                  data: base64Image,
+      // Models to try in order (multi-model fallback loop)
+      const modelsToTry = [
+        'gemini-1.5-flash',
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-pro',
+        'gemini-pro-vision', // legacy backup
+      ];
+
+      let finalText: string | null = null;
+      let lastError: any = null;
+
+      for (const modelName of modelsToTry) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+        const body = {
+          contents: [
+            {
+              parts: [
+                { text: prompt },
+                {
+                  inline_data: {
+                    mime_type: selectedImage.type || 'image/jpeg',
+                    data: base64Image,
+                  },
                 },
-              },
-            ],
-          },
-        ],
-      };
+              ],
+            },
+          ],
+        };
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        try {
+          console.log(`[Gemini] Trying model via REST: ${modelName}`);
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+          });
 
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => response.statusText);
-        console.error('Gemini REST API error:', response.status, response.statusText, errorText);
-        throw new Error(response.statusText || 'Request to Gemini API failed');
+          if (!response.ok) {
+            const errorText = await response.text().catch(() => response.statusText);
+            console.warn(
+              `[Gemini] Model ${modelName} failed with status ${response.status} ${response.statusText}:`,
+              errorText,
+            );
+            throw new Error(response.statusText || `Request to Gemini API failed for model ${modelName}`);
+          }
+
+          const data = await response.json();
+
+          const text =
+            data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+            data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('').trim();
+
+          if (text && text.trim()) {
+            if (modelName !== modelsToTry[0]) {
+              console.log(`Switched to backup model: ${modelName}`);
+            }
+            finalText = String(text).trim();
+            break;
+          } else {
+            console.warn(`[Gemini] Model ${modelName} returned no text. Raw response:`, data);
+            lastError = new Error(`No text content returned from Gemini API for model ${modelName}`);
+          }
+        } catch (err: any) {
+          lastError = err;
+          console.warn(`[Gemini] Error using model ${modelName}:`, err);
+          // Continue to next model
+        }
       }
 
-      const data = await response.json();
-
-      const text =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('').trim();
-
-      if (!text) {
-        console.error('Unexpected Gemini response format:', data);
-        throw new Error('No text content returned from Gemini API');
+      if (!finalText) {
+        throw lastError || new Error('All Gemini models failed and returned no text.');
       }
 
-      setAnalysisResult(String(text).trim());
+      setAnalysisResult(finalText);
     } catch (error: any) {
-      console.error('CropDoctor analysis error (REST API):', error);
+      console.error('CropDoctor analysis error (REST multi-model fallback):', error);
 
       toast({
         title: language === 'en' ? 'Analysis Failed' : 'বিশ্লেষণ ব্যর্থ',
         description:
           language === 'en'
-            ? 'Could not analyze the image right now. Please check your API key and API configuration, then try again.'
-            : 'এই মুহূর্তে ছবিটি বিশ্লেষণ করা সম্ভব হয়নি। অনুগ্রহ করে আপনার API কী এবং API কনফিগারেশন পরীক্ষা করুন, তারপর আবার চেষ্টা করুন।',
+            ? 'Could not analyze the image right now. Please check your API key, model access, and try again in a moment.'
+            : 'এই মুহূর্তে ছবিটি বিশ্লেষণ করা সম্ভব হয়নি। অনুগ্রহ করে আপনার API কী ও মডেল অ্যাক্সেস পরীক্ষা করুন এবং কিছুক্ষণ পরে আবার চেষ্টা করুন।',
         variant: 'destructive',
       });
     } finally {
