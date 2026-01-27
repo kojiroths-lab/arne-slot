@@ -120,33 +120,19 @@ const LoginPage = () => {
         {/* Soft white wash overlay to match old design */}
         <div className="absolute inset-0 bg-white/70" />
 
-        <div className="relative z-10 w-full max-w-xs sm:max-w-sm md:max-w-md">
+        <div className="relative z-10 w-full max-w-xs sm:max-w-sm md:max-w-sm">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-elevated p-4 sm:p-6 md:p-8"
+            className="bg-white rounded-2xl shadow-elevated p-4 sm:p-5 md:p-6"
           >
             {/* Logo */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <img
                 src="/products/logo.png"
                 alt="AMOR"
                 className="mx-auto h-20 w-20 md:h-24 md:w-24 lg:h-28 lg:w-28 object-contain"
               />
-            </div>
-
-            {/* Hero copy */}
-            <div className="text-center mb-8 space-y-2">
-              <h1 className="text-lg md:text-2xl font-semibold text-emerald-900 leading-snug">
-                {language === 'en'
-                  ? 'Turning Salon Waste into Soil Wealth.'
-                  : 'বর্জ্য থেকে সম্পদ। মাটির জন্য নতুন প্রাণ।'}
-              </h1>
-              <p className="text-xs md:text-sm text-emerald-900/80 max-w-md mx-auto">
-                {language === 'en'
-                  ? "Bangladesh's first circular bio-stimulant. We convert keratin waste into affordable liquid nitrogen fertilizer for farmers."
-                  : 'বাংলাদেশের প্রথম সার্কুলার বায়ো-স্টিমুল্যান্ট। আমরা কেরাটিন বর্জ্যকে কৃষকের জন্য সাশ্রয়ী তরল নাইট্রোজেন সারে রূপান্তর করি।'}
-              </p>
             </div>
 
             {/* Login Form */}
@@ -356,21 +342,6 @@ const LoginPage = () => {
                   className="h-80 md:h-96 w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/70 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-emerald-50">
-                  <div>
-                    <p className="font-medium">
-                      {language === 'en'
-                        ? 'Urban Gardens Powered by Waste'
-                        : 'অবর্জনার শক্তিতে শহুরে বাগান'}
-                    </p>
-                    <p className="text-emerald-100/80">
-                      {language === 'en' ? 'Dhaka • Chattogram • Sylhet' : 'ঢাকা • চট্টগ্রাম • সিলেট'}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-emerald-500/80 px-3 py-1 text-[10px] font-semibold shadow-md">
-                    {language === 'en' ? 'Live pilot' : 'লাইভ পাইলট'}
-                  </span>
-                </div>
               </div>
             </div>
           </motion.div>
@@ -579,18 +550,6 @@ const LoginPage = () => {
                 </p>
               </div>
             </div>
-
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 text-xs md:text-sm font-medium text-emerald-800 hover:text-emerald-900 group w-fit"
-            >
-              <span className="border-b border-emerald-700/60 group-hover:border-emerald-900 transition-colors">
-                {language === 'en' ? 'Learn more' : 'আরও জানুন'}
-              </span>
-              <span className="translate-x-0 group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            </button>
           </motion.div>
         </div>
       </section>
