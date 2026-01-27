@@ -36,6 +36,9 @@ const ProfilePage = () => {
   const [salonName, setSalonName] = useState('');
   const [salonAddress, setSalonAddress] = useState('');
   const [salonPhone, setSalonPhone] = useState(user?.phone || '');
+  const [salonLat, setSalonLat] = useState<number | null>(null);
+  const [salonLng, setSalonLng] = useState<number | null>(null);
+  const [salonLocationStatus, setSalonLocationStatus] = useState<string | null>(null);
   const [collectorName, setCollectorName] = useState(user?.name || '');
   const [collectorPhone, setCollectorPhone] = useState(user?.phone || '');
   const [collectorNid, setCollectorNid] = useState('');
@@ -108,10 +111,24 @@ const ProfilePage = () => {
         return;
       }
 
+      if (salonLat === null || salonLng === null) {
+        toast({
+          title: language === 'en' ? 'Error' : 'ত্রুটি',
+          description:
+            language === 'en'
+              ? 'Please capture the live salon location before upgrading.'
+              : 'আপগ্রেড করার আগে লাইভ সেলুন লোকেশনটি ক্যাপচার করুন।',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       await upgradeAccount('salon', {
         salonName: salonName.trim(),
         salonAddress: salonAddress.trim(),
         salonPhone: salonPhone.trim(),
+        salonLat,
+        salonLng,
       });
     } else {
       if (!collectorName.trim() || !collectorPhone.trim() || !collectorNid.trim()) {
@@ -461,6 +478,57 @@ const ProfilePage = () => {
                   placeholder={language === 'en' ? '+8801...' : '+8801...'}
                 />
               </div>
+              <Button
+                variant="outline"
+                className="w-full justify-center text-xs"
+                onClick={() => {
+                  if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+                    setSalonLocationStatus(
+                      language === 'en'
+                        ? 'Location services not available on this device.'
+                        : 'এই ডিভাইসে লোকেশন সার্ভিস চালু নয়।'
+                    );
+                    return;
+                  }
+
+                  setSalonLocationStatus(
+                    language === 'en'
+                      ? 'Getting current location...'
+                      : 'বর্তমান অবস্থান নেওয়া হচ্ছে...'
+                  );
+
+                  navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                      setSalonLat(position.coords.latitude);
+                      setSalonLng(position.coords.longitude);
+                      setSalonLocationStatus(
+                        language === 'en'
+                          ? 'Location captured successfully.'
+                          : 'লোকেশন সফলভাবে ক্যাপচার হয়েছে।'
+                      );
+                    },
+                    () => {
+                      setSalonLocationStatus(
+                        language === 'en'
+                          ? 'Could not access GPS location.'
+                          : 'জিপিএস অবস্থান পাওয়া যায়নি।'
+                      );
+                    },
+                    { enableHighAccuracy: true, timeout: 20000 }
+                  );
+                }}
+              >
+                {language === 'en' ? '📍 Use Current Location' : '📍 বর্তমান অবস্থান ব্যবহার করুন'}
+              </Button>
+              {salonLocationStatus && (
+                <p className="text-xs text-muted-foreground">{salonLocationStatus}</p>
+              )}
+              {salonLat !== null && salonLng !== null && (
+                <p className="text-xs text-muted-foreground">
+                  {language === 'en' ? 'Saved:' : 'সংরক্ষিত:'}{' '}
+                  {salonLat.toFixed(4)}, {salonLng.toFixed(4)}
+                </p>
+              )}
               <Button
                 variant="outline"
                 className="h-auto p-4 flex flex-col gap-2 w-full"
