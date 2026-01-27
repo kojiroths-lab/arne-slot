@@ -168,13 +168,7 @@ const CropDoctor = () => {
       // Convert image to base64
       const base64Image = await convertImageToBase64(selectedImage);
 
-      // Ensure MIME type is valid (fallback to image/jpeg if not specified)
-      let mimeType = selectedImage.type || 'image/jpeg';
-      if (!mimeType.startsWith('image/')) {
-        mimeType = 'image/jpeg';
-      }
-
-      // Create prompt
+      // Prompt stays the same
       const prompt = `You are an agricultural expert. Analyze this image of a plant leaf. 
 
 1. Identify the disease or nutrient deficiency.
@@ -183,96 +177,60 @@ const CropDoctor = () => {
 
 Keep it short and helpful for a farmer. Format your response in clear sections with markdown.`;
 
-      // Initialize Gemini client once
-      const genAI = new GoogleGenerativeAI(apiKey);
-
-      // Helper: robust model fallback strategy
-      const generateWithFallback = async (imageBase64: string): Promise<string> => {
-        // Attempt 1: gemini-1.5-flash-latest
-        try {
-          const primaryModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
-          const primaryResult = await primaryModel.generateContent([
-            prompt,
-            {
-              inlineData: {
-                data: imageBase64,
-                mimeType,
-              },
-            },
-          ]);
-          const primaryResponse = await primaryResult.response;
-          const primaryText = primaryResponse.text();
-          if (primaryText && primaryText.trim()) {
-            return primaryText.trim();
-          }
-          throw new Error('Empty response from gemini-1.5-flash-latest');
-        } catch (err1) {
-          console.warn('Primary model gemini-1.5-flash-latest failed, trying backup gemini-1.5-pro', err1);
-          console.log('Switched to backup model: gemini-1.5-pro');
-
-          // Attempt 2: gemini-1.5-pro
-          try {
-            const backupModel = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-            const backupResult = await backupModel.generateContent([
-              prompt,
+      // Construct REST API request body using v1beta format
+      const body = {
+        contents: [
+          {
+            parts: [
+              { text: prompt },
               {
-                inlineData: {
-                  data: imageBase64,
-                  mimeType,
+                inline_data: {
+                  mime_type: selectedImage.type || 'image/jpeg',
+                  data: base64Image,
                 },
               },
-            ]);
-            const backupResponse = await backupResult.response;
-            const backupText = backupResponse.text();
-            if (backupText && backupText.trim()) {
-              return backupText.trim();
-            }
-            throw new Error('Empty response from gemini-1.5-pro');
-          } catch (err2) {
-            console.warn('Backup model gemini-1.5-pro failed, trying legacy gemini-pro-vision', err2);
-            console.log('Switched to backup model: gemini-pro-vision');
-
-            // Attempt 3: gemini-pro-vision (legacy)
-            try {
-              const legacyModel = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
-              const legacyResult = await legacyModel.generateContent([
-                prompt,
-                {
-                  inlineData: {
-                    data: imageBase64,
-                    mimeType,
-                  },
-                },
-              ]);
-              const legacyResponse = await legacyResult.response;
-              const legacyText = legacyResponse.text();
-              if (legacyText && legacyText.trim()) {
-                return legacyText.trim();
-              }
-              throw new Error('Empty response from gemini-pro-vision');
-            } catch (err3) {
-              console.error('All Gemini models failed in generateWithFallback', {
-                primaryError: err1,
-                backupError: err2,
-                legacyError: err3,
-              });
-              throw err3;
-            }
-          }
-        }
+            ],
+          },
+        ],
       };
 
-      const text = await generateWithFallback(base64Image);
-      setAnalysisResult(text);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => response.statusText);
+        console.error('Gemini REST API error:', response.status, response.statusText, errorText);
+        throw new Error(response.statusText || 'Request to Gemini API failed');
+      }
+
+      const data = await response.json();
+
+      const text =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('').trim();
+
+      if (!text) {
+        console.error('Unexpected Gemini response format:', data);
+        throw new Error('No text content returned from Gemini API');
+      }
+
+      setAnalysisResult(String(text).trim());
     } catch (error: any) {
-      console.error('CropDoctor analysis error after all fallbacks:', error);
+      console.error('CropDoctor analysis error (REST API):', error);
 
       toast({
         title: language === 'en' ? 'Analysis Failed' : 'বিশ্লেষণ ব্যর্থ',
         description:
           language === 'en'
-            ? 'Could not analyze the image right now. Please check your API key, model access, and try again in a moment.'
-            : 'এই মুহূর্তে ছবিটি বিশ্লেষণ করা সম্ভব হয়নি। অনুগ্রহ করে আপনার API কী ও মডেল অ্যাক্সেস পরীক্ষা করুন এবং কিছুক্ষণ পরে আবার চেষ্টা করুন।',
+            ? 'Could not analyze the image right now. Please check your API key and API configuration, then try again.'
+            : 'এই মুহূর্তে ছবিটি বিশ্লেষণ করা সম্ভব হয়নি। অনুগ্রহ করে আপনার API কী এবং API কনফিগারেশন পরীক্ষা করুন, তারপর আবার চেষ্টা করুন।',
         variant: 'destructive',
       });
     } finally {
