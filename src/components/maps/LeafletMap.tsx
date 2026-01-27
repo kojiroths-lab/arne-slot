@@ -19,6 +19,8 @@ type Props = {
   center: LeafletLatLng;
   zoom: number;
   markers?: LeafletMarker[];
+  /** Optional bounds to fit (e.g. full route). When provided, map will fit these and NOT force center/zoom otherwise. */
+  fitBounds?: LeafletLatLng[];
   polyline?: {
     positions: LeafletLatLng[];
     color?: string;
@@ -30,7 +32,7 @@ type Props = {
 /**
  * A tiny Leaflet wrapper (no react-leaflet) to avoid runtime issues caused by Context consumers.
  */
-export function LeafletMap({ className, center, zoom, markers = [], polyline }: Props) {
+export function LeafletMap({ className, center, zoom, markers = [], polyline, fitBounds }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<{ markers: L.LayerGroup; polyline?: L.Polyline } | null>(null);
@@ -108,17 +110,18 @@ export function LeafletMap({ className, center, zoom, markers = [], polyline }: 
     };
   }, []);
 
-  // Update view
+  // Fit bounds when requested (e.g. when a route is available).
+  // This avoids fighting with user panning/zooming and only adjusts view explicitly.
   useEffect(() => {
-    if (!mapRef.current) return;
-    mapRef.current.setView(center, zoom);
-    // Invalidate size after view change
-    setTimeout(() => {
-      if (mapRef.current) {
-        mapRef.current.invalidateSize();
-      }
-    }, 50);
-  }, [center, zoom]);
+    if (!mapRef.current || !fitBounds || fitBounds.length === 0) return;
+
+    try {
+      const bounds = L.latLngBounds(fitBounds.map(([lat, lng]) => L.latLng(lat, lng)));
+      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+    } catch {
+      // Ignore bounds errors
+    }
+  }, [fitBounds]);
 
   // Update overlays (markers + polyline)
   useEffect(() => {
