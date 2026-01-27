@@ -183,37 +183,96 @@ const CropDoctor = () => {
 
 Keep it short and helpful for a farmer. Format your response in clear sections with markdown.`;
 
-      // Initialize Gemini client and model (simple, single-model setup)
+      // Initialize Gemini client once
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-      const result = await model.generateContent([
-        prompt,
-        {
-          inlineData: {
-            data: base64Image,
-            mimeType,
-          },
-        },
-      ]);
+      // Helper: robust model fallback strategy
+      const generateWithFallback = async (imageBase64: string): Promise<string> => {
+        // Attempt 1: gemini-1.5-flash-latest
+        try {
+          const primaryModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+          const primaryResult = await primaryModel.generateContent([
+            prompt,
+            {
+              inlineData: {
+                data: imageBase64,
+                mimeType,
+              },
+            },
+          ]);
+          const primaryResponse = await primaryResult.response;
+          const primaryText = primaryResponse.text();
+          if (primaryText && primaryText.trim()) {
+            return primaryText.trim();
+          }
+          throw new Error('Empty response from gemini-1.5-flash-latest');
+        } catch (err1) {
+          console.warn('Primary model gemini-1.5-flash-latest failed, trying backup gemini-1.5-pro', err1);
+          console.log('Switched to backup model: gemini-1.5-pro');
 
-      const response = await result.response;
-      const text = response.text();
+          // Attempt 2: gemini-1.5-pro
+          try {
+            const backupModel = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+            const backupResult = await backupModel.generateContent([
+              prompt,
+              {
+                inlineData: {
+                  data: imageBase64,
+                  mimeType,
+                },
+              },
+            ]);
+            const backupResponse = await backupResult.response;
+            const backupText = backupResponse.text();
+            if (backupText && backupText.trim()) {
+              return backupText.trim();
+            }
+            throw new Error('Empty response from gemini-1.5-pro');
+          } catch (err2) {
+            console.warn('Backup model gemini-1.5-pro failed, trying legacy gemini-pro-vision', err2);
+            console.log('Switched to backup model: gemini-pro-vision');
 
-      if (!text) {
-        throw new Error('No response text received from Gemini.');
-      }
+            // Attempt 3: gemini-pro-vision (legacy)
+            try {
+              const legacyModel = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
+              const legacyResult = await legacyModel.generateContent([
+                prompt,
+                {
+                  inlineData: {
+                    data: imageBase64,
+                    mimeType,
+                  },
+                },
+              ]);
+              const legacyResponse = await legacyResult.response;
+              const legacyText = legacyResponse.text();
+              if (legacyText && legacyText.trim()) {
+                return legacyText.trim();
+              }
+              throw new Error('Empty response from gemini-pro-vision');
+            } catch (err3) {
+              console.error('All Gemini models failed in generateWithFallback', {
+                primaryError: err1,
+                backupError: err2,
+                legacyError: err3,
+              });
+              throw err3;
+            }
+          }
+        }
+      };
 
-      setAnalysisResult(text.trim());
+      const text = await generateWithFallback(base64Image);
+      setAnalysisResult(text);
     } catch (error: any) {
-      console.error('CropDoctor analysis error:', error);
+      console.error('CropDoctor analysis error after all fallbacks:', error);
 
       toast({
         title: language === 'en' ? 'Analysis Failed' : 'বিশ্লেষণ ব্যর্থ',
         description:
           language === 'en'
-            ? 'Could not analyze the image right now. Please check your API key and try again in a moment.'
-            : 'এই মুহূর্তে ছবিটি বিশ্লেষণ করা সম্ভব হয়নি। অনুগ্রহ করে আপনার API কী পরীক্ষা করুন এবং কিছুক্ষণ পরে আবার চেষ্টা করুন।',
+            ? 'Could not analyze the image right now. Please check your API key, model access, and try again in a moment.'
+            : 'এই মুহূর্তে ছবিটি বিশ্লেষণ করা সম্ভব হয়নি। অনুগ্রহ করে আপনার API কী ও মডেল অ্যাক্সেস পরীক্ষা করুন এবং কিছুক্ষণ পরে আবার চেষ্টা করুন।',
         variant: 'destructive',
       });
     } finally {
