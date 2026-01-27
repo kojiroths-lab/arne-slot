@@ -10,6 +10,8 @@ export type LeafletMarker = {
   popupHtml?: string;
   /** Optional Leaflet icon instance (e.g., L.divIcon / L.icon) */
   icon?: L.Icon | L.DivIcon;
+  /** Optional click handler invoked when the marker is clicked */
+  onClick?: () => void;
 };
 
 type Props = {
@@ -127,6 +129,11 @@ export function LeafletMap({ className, center, zoom, markers = [], polyline }: 
     markers.forEach((m) => {
       const marker = L.marker(m.position, m.icon ? { icon: m.icon } : undefined);
       if (m.popupHtml) marker.bindPopup(m.popupHtml);
+      if (m.onClick) {
+        marker.on('click', () => {
+          m.onClick && m.onClick();
+        });
+      }
       marker.addTo(layerRef.current!.markers);
     });
 
