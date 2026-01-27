@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Stethoscope, Upload, Image as ImageIcon, Loader2, Sparkles } from 'lucide-react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Stethoscope, Upload, Image as ImageIcon, Loader2, Sparkles, ShoppingBag } from 'lucide-react';
+import { products } from '@/data/mockData';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useCart } from '@/contexts/CartContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -77,10 +78,12 @@ const markdownToHtml = (text: string): string => {
 const CropDoctor = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const { addToCart } = useCart();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string>('');
+  const [recommendations, setRecommendations] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageSelect = (file: File) => {
@@ -163,10 +166,19 @@ const CropDoctor = () => {
 
     setIsAnalyzing(true);
     setAnalysisResult('');
+    setRecommendations([]);
 
     try {
       // Convert image to base64
       const base64Image = await convertImageToBase64(selectedImage);
+
+      // Build product context for the AI so it knows what we sell
+      const productContext = products
+        .map(
+          (p) =>
+            `ID: ${p.id}, Name: ${p.name}, Use for: ${p.description || ''}`,
+        )
+        .join('\n');
 
       // Step 1: list available models via v1beta
       const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
@@ -230,14 +242,24 @@ const CropDoctor = () => {
       const fullModelName: string = matchingModel.name; // e.g., "models/gemini-1.5-flash-001"
       console.log('[Gemini] Using discovered model:', fullModelName, matchingModel);
 
-      // Prompt stays the same
-      const prompt = `You are an agricultural expert. Analyze this image of a plant leaf. 
+      // Prompt: analysis + product-aware recommendation with JSON output
+      const prompt = `You are an agricultural expert and sales assistant. Analyze this image of a plant leaf.
+
+Here is the list of available fertilizer products from our store:
+${productContext}
+
+Use ONLY these products when recommending treatments.
 
 1. Identify the disease or nutrient deficiency.
 2. Explain the cause briefly.
 3. Recommend 'Kera-N Organic Fertilizer' as the solution if it involves Nitrogen deficiency or general growth issues.
+ 4. If the problem is related to chili plants, prefer the product that best fits chili or spicy crops (for example, "Spicy-Gro" if present).
 
-Keep it short and helpful for a farmer. Format your response in clear sections with markdown.`;
+Keep it short and helpful for a farmer. Format your response in clear sections with markdown.
+
+IMPORTANT: After your natural-language analysis, strictly output a JSON block on a new line at the very end listing the recommended Product IDs based on the diagnosis. Use this exact format:
+{ "recommended_product_ids": [1, 5] }
+Do not add extra keys to this JSON.`;
 
       // Step 3: call generateContent on the discovered model via REST
       const generateUrl = `https://generativelanguage.googleapis.com/v1beta/${fullModelName}:generateContent?key=${apiKey}`;
@@ -274,16 +296,47 @@ Keep it short and helpful for a farmer. Format your response in clear sections w
 
       const data = await response.json();
 
-      const text =
+      const rawText: string =
         data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('').trim();
+        data?.candidates?.[0]?.content?.parts
+          ?.map((p: any) => p.text || '')
+          .join('')
+          .trim();
 
-      if (!text) {
+      if (!rawText) {
         console.error('Unexpected Gemini response format from generateContent:', data);
         throw new Error('No text content returned from Gemini generateContent API');
       }
 
-      setAnalysisResult(String(text).trim());
+      // Extract JSON block with recommended_product_ids from the end of the text
+      let mainText = rawText;
+      let parsedIds: number[] = [];
+      try {
+        const jsonMatch = rawText.match(/\{[\s\S]*"recommended_product_ids"[\s\S]*\}/);
+        if (jsonMatch) {
+          let jsonString = jsonMatch[0].trim();
+          // Remove possible code fences
+          if (jsonString.startsWith('```')) {
+            jsonString = jsonString.replace(/^```(json)?/i, '').replace(/```$/, '').trim();
+          }
+          const parsed = JSON.parse(jsonString);
+          if (
+            parsed &&
+            Array.isArray(parsed.recommended_product_ids)
+          ) {
+            parsedIds = parsed.recommended_product_ids
+              .map((id: any) => Number(id))
+              .filter((id: number) => Number.isFinite(id));
+          }
+          // Remove JSON block from the visible analysis text
+          mainText = rawText.replace(jsonMatch[0], '').trim();
+        }
+      } catch (parseErr) {
+        console.warn('Failed to parse recommended_product_ids JSON from AI response:', parseErr);
+      }
+
+      setAnalysisResult(mainText);
+      setRecommendations(parsedIds);
 
       // Step 4: success toast with model name
       toast({
@@ -436,26 +489,83 @@ Keep it short and helpful for a farmer. Format your response in clear sections w
 
         {/* Result Area */}
         {analysisResult && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="shadow-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Stethoscope className="h-5 w-5 text-primary" />
-                  {language === 'en' ? 'AI Diagnosis' : 'AI রোগ নির্ণয়'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div 
-                  className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-ul:text-muted-foreground prose-ol:text-muted-foreground"
-                  dangerouslySetInnerHTML={{ __html: markdownToHtml(analysisResult) }}
-                />
-              </CardContent>
-            </Card>
-          </motion.div>
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card className="shadow-elevated">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Stethoscope className="h-5 w-5 text-primary" />
+                    {language === 'en' ? 'AI Diagnosis' : 'AI রোগ নির্ণয়'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-ul:text-muted-foreground prose-ol:text-muted-foreground"
+                    dangerouslySetInnerHTML={{ __html: markdownToHtml(analysisResult) }}
+                  />
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {recommendations.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="mt-4"
+              >
+                <Card className="shadow-elevated">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ShoppingBag className="h-5 w-5 text-primary" />
+                      {language === 'en' ? 'Recommended Treatment' : 'প্রস্তাবিত সার সমাধান'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {products
+                        .filter((p) => recommendations.includes(p.id))
+                        .map((product) => (
+                          <div
+                            key={product.id}
+                            className="flex gap-3 items-center rounded-lg border bg-card p-3 shadow-sm"
+                          >
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="h-16 w-16 rounded-md object-cover flex-shrink-0"
+                            />
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <p className="font-semibold text-sm truncate">{product.name}</p>
+                                <span className="text-xs font-medium text-primary whitespace-nowrap">
+                                  ৳{product.price}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                                {product.description}
+                              </p>
+                              <Button
+                                size="sm"
+                                className="mt-auto self-start text-xs px-3 py-1 h-7"
+                                onClick={() => addToCart(product)}
+                              >
+                                <ShoppingBag className="mr-1 h-3 w-3" />
+                                {language === 'en' ? 'Add to Cart' : 'কার্টে যোগ করুন'}
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </>
         )}
 
         {/* Info Card */}
