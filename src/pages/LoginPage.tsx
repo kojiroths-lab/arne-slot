@@ -509,41 +509,74 @@ const LoginPage = () => {
           >
             <div className="space-y-3">
               <p className="text-[11px] md:text-xs uppercase tracking-[0.3em] text-amber-400">
-                RURAL EMPOWERMENT
+                {language === 'en' ? 'RURAL EMPOWERMENT' : 'গ্রামীণ উন্নয়ন'}
               </p>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-emerald-950 leading-tight">
-                Feeding the Nation, Preserving the Soil.
+                {language === 'en'
+                  ? 'Feeding the Nation, Preserving the Soil.'
+                  : 'দেশের খাদ্য নিরাপত্তা, মাটির সুরক্ষা।'}
               </h2>
-              <p className="text-sm md:text-base text-emerald-900/80 leading-relaxed">
-                For decades, our farmers have battled rising costs and degrading soil. AMOR changes the
-                equation. By delivering high-potency bio-stimulants directly to the village level, we
-                empower the backbone of our economy to grow more, spend less, and heal the land for
-                future generations.
-              </p>
-              <p className="text-sm md:text-base text-emerald-900/90 leading-relaxed">
-                যুগ যুগ ধরে আমাদের কৃষকরা মাটির উর্বরতা হারানো এবং সারের দাম বৃদ্ধির সাথে লড়াই করছেন।
-                AMOR সেই দিন বদলাচ্ছে। আমরা সরাসরি গ্রামের কৃষকের হাতে পৌঁছে দিচ্ছি উচ্চমানের জৈব সার,
-                যা ফলন বাড়ায় এবং মাটির প্রাণ ফিরিয়ে আনে।
-              </p>
+              {language === 'en' ? (
+                <>
+                  <p className="text-sm md:text-base text-emerald-900/80 leading-relaxed">
+                    For decades, our farmers have battled rising costs and degrading soil. AMOR changes the
+                    equation. By delivering high-potency bio-stimulants directly to the village level, we
+                    empower the backbone of our economy to grow more, spend less, and heal the land for
+                    future generations.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm md:text-base text-emerald-900/90 leading-relaxed">
+                    যুগ যুগ ধরে আমাদের কৃষকরা মাটির উর্বরতা হারানো এবং সারের দাম বৃদ্ধির সাথে লড়াই করছেন।
+                    AMOR সেই দিন বদলাচ্ছে। আমরা সরাসরি গ্রামের কৃষকের হাতে পৌঁছে দিচ্ছি উচ্চমানের জৈব সার,
+                    যা ফলন বাড়ায় এবং মাটির প্রাণ ফিরিয়ে আনে।
+                  </p>
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs md:text-sm">
               <div className="rounded-2xl bg-white shadow-sm border border-emerald-100/70 p-4 flex flex-col gap-1">
-                <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-500">Yield</p>
-                <p className="text-lg md:text-xl font-semibold text-emerald-950">20% Increase</p>
-                <p className="text-emerald-900/70">More grain per acre, season after season.</p>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-500">
+                  {language === 'en' ? 'Yield' : 'ফলন'}
+                </p>
+                <p className="text-lg md:text-xl font-semibold text-emerald-950">
+                  {language === 'en' ? '20% Increase' : '২০% বৃদ্ধি'}
+                </p>
+                <p className="text-emerald-900/70">
+                  {language === 'en'
+                    ? 'More grain per acre, season after season.'
+                    : 'প্রতি বিঘায় আরও বেশি ফলন, মৌসুমের পর মৌসুম।'}
+                </p>
               </div>
 
               <div className="rounded-2xl bg-white shadow-sm border border-emerald-100/70 p-4 flex flex-col gap-1">
-                <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-500">Cost</p>
-                <p className="text-lg md:text-xl font-semibold text-emerald-950">30% Savings</p>
-                <p className="text-emerald-900/70">On chemical urea, without compromising yield.</p>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-500">
+                  {language === 'en' ? 'Cost' : 'খরচ'}
+                </p>
+                <p className="text-lg md:text-xl font-semibold text-emerald-950">
+                  {language === 'en' ? '30% Savings' : '৩০% সাশ্রয়'}
+                </p>
+                <p className="text-emerald-900/70">
+                  {language === 'en'
+                    ? 'On chemical urea, without compromising yield.'
+                    : 'রাসায়নিক ইউরিয়ার খরচ কমিয়ে, ফলন অক্ষুণ্ণ রেখে।'}
+                </p>
               </div>
 
               <div className="rounded-2xl bg-white shadow-sm border border-emerald-100/70 p-4 flex flex-col gap-1">
-                <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-500">Soil</p>
-                <p className="text-lg md:text-xl font-semibold text-emerald-950">100% Regenerative</p>
-                <p className="text-emerald-900/70">Restores pH and supports living, breathing soil.</p>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-emerald-500">
+                  {language === 'en' ? 'Soil' : 'মাটি'}
+                </p>
+                <p className="text-lg md:text-xl font-semibold text-emerald-950">
+                  {language === 'en' ? '100% Regenerative' : '১০০% পুনরুজ্জীবনশীল'}
+                </p>
+                <p className="text-emerald-900/70">
+                  {language === 'en'
+                    ? 'Restores pH and supports living, breathing soil.'
+                    : 'মাটির পিএইচ ভারসাম্য ফিরিয়ে আনে, প্রাণবন্ত মাটি গড়ে তোলে।'}
+                </p>
               </div>
             </div>
 
@@ -552,7 +585,7 @@ const LoginPage = () => {
               className="inline-flex items-center gap-2 text-xs md:text-sm font-medium text-emerald-800 hover:text-emerald-900 group w-fit"
             >
               <span className="border-b border-emerald-700/60 group-hover:border-emerald-900 transition-colors">
-                Learn more
+                {language === 'en' ? 'Learn more' : 'আরও জানুন'}
               </span>
               <span className="translate-x-0 group-hover:translate-x-1 transition-transform">
                 →
