@@ -22,6 +22,7 @@ const CollectorMap = () => {
   const [routeCoords, setRouteCoords] = useState<LeafletLatLng[]>([]);
   const [selectedPickup, setSelectedPickup] = useState<any | null>(null);
   const [routeStats, setRouteStats] = useState<{ duration: number; distance: number } | null>(null);
+  const [mapCenter, setMapCenter] = useState<LeafletLatLng | null>(null);
 
   // Load pending pickups with joined salon data
   useEffect(() => {
@@ -52,12 +53,18 @@ const CollectorMap = () => {
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        setUserLocation([latitude, longitude]);
+        const loc: LeafletLatLng = [latitude, longitude];
+        setUserLocation(loc);
+        if (!mapCenter) {
+          setMapCenter(loc);
+        }
       },
       () => {
         // On error keep previous or fallback
         if (!userLocation) {
-          setUserLocation([23.7591, 90.3805]);
+          const fallback: LeafletLatLng = [23.7591, 90.3805];
+          setUserLocation(fallback);
+          if (!mapCenter) setMapCenter(fallback);
         }
       },
       {
@@ -222,6 +229,35 @@ const CollectorMap = () => {
     ? `https://www.google.com/maps/dir/?api=1&destination=${currentSalon.lat},${currentSalon.lng}`
     : null;
 
+  // Upcoming stops queue (other pending pickups except the current one), roughly sorted by distance from user
+  const upcomingPickups = useMemo(() => {
+    if (!userLocation) return [] as any[];
+    const [uLat, uLng] = userLocation;
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+      const R = 6371e3;
+      const phi1 = toRad(lat1);
+      const phi2 = toRad(lat2);
+      const dPhi = toRad(lat2 - lat1);
+      const dLambda = toRad(lng2 - lng1);
+      const a =
+        Math.sin(dPhi / 2) * Math.sin(dPhi / 2) +
+        Math.cos(phi1) * Math.cos(phi2) *
+        Math.sin(dLambda / 2) * Math.sin(dLambda / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c; // meters
+    };
+
+    return pendingPickups
+      .filter((p) => p !== selectedPickup && p.salons?.lat && p.salons?.lng)
+      .map((p) => ({
+        pickup: p,
+        distance: haversine(uLat, uLng, p.salons.lat, p.salons.lng),
+      }))
+      .sort((a, b) => a.distance - b.distance)
+      .map((x) => x.pickup);
+  }, [pendingPickups, selectedPickup, userLocation]);
+
   return (
     <div className="relative flex flex-col h-[calc(100vh-8rem)] md:h-screen bg-background">
       {/* Header */}
@@ -240,25 +276,48 @@ const CollectorMap = () => {
 
       {/* Map */}
       <div className="flex-1 relative min-h-0 pb-[220px]">
-        {userLocation && (
+        {userLocation && mapCenter && (
           <LeafletMap
             className="h-full w-full absolute inset-0"
-            center={userLocation}
+            center={mapCenter}
             zoom={13}
             markers={mapMarkers}
             polyline={{ positions: routeCoords, color: '#047857', weight: 4 }}
+            fitBounds={routeCoords.length > 1 ? routeCoords : undefined}
           />
+        )}
+
+        {/* Recenter FAB */}
+        {userLocation && (
+          <button
+            type="button"
+            onClick={() => setMapCenter(userLocation)}
+            className="absolute right-4 bottom-28 md:bottom-32 z-[9000] inline-flex h-10 w-10 items-center justify-center rounded-full bg-background border border-border shadow-md hover:bg-muted transition-colors"
+          >
+            <span className="text-lg">📍</span>
+          </button>
         )}
       </div>
 
       {/* Bottom Sheet - Live Route Dashboard */}
       {currentSalon && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 px-3 pb-4">
-          <div className="mx-auto max-w-3xl rounded-t-3xl bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.1)] border border-border pt-3 px-4 pb-4">
+        <div className="fixed bottom-4 left-4 right-4 z-[9999] pointer-events-none">
+          <div className="pointer-events-auto mx-auto max-w-xl rounded-2xl bg-background shadow-[0_10px_40px_rgba(0,0,0,0.25)] border border-border pt-3 px-4 pb-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">
                 {language === 'en' ? 'Next Stop' : 'পরবর্তী গন্তব্য'}
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPickup(null);
+                  setRouteCoords([]);
+                  setRouteStats(null);
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-2 py-0.5"
+              >
+                {language === 'en' ? 'Close' : 'বন্ধ করুন'}
+              </button>
             </div>
             <h2 className="text-lg font-semibold text-foreground mb-3 truncate">
               {currentSalon.name || (language === 'en' ? 'Selected Salon' : 'নির্বাচিত সেলুন')}
@@ -302,6 +361,41 @@ const CollectorMap = () => {
                   : `বকেয়া: ${currentPendingKg.toFixed(1)} কেজি`}
               </p>
             </div>
+
+            {/* Upcoming stops queue */}
+            {upcomingPickups.length > 0 && (
+              <div className="mb-3 border-t border-border pt-2">
+                <p className="text-xs font-medium text-muted-foreground mb-1">
+                  {language === 'en' ? 'Upcoming stops' : 'পরবর্তী স্টপগুলো'}
+                </p>
+                <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                  {upcomingPickups.slice(0, 4).map((p) => {
+                    const s = p.salons;
+                    const kg = Number(p.quantity_kg) || 0;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPickup(p);
+                          buildRouteToPickup(p);
+                        }}
+                        className="w-full text-left text-xs rounded-lg px-2 py-1 hover:bg-muted flex items-center justify-between gap-2"
+                      >
+                        <span className="truncate">
+                          {s?.name || (language === 'en' ? 'Salon' : 'সেলুন')}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                          {language === 'en'
+                            ? `${kg.toFixed(1)} kg`
+                            : `${kg.toFixed(1)} কেজি`}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Action button */}
             {mapsUrl && (
