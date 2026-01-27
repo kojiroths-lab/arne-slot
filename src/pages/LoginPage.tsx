@@ -345,7 +345,7 @@ const LoginPage = () => {
           >
             <div className="relative w-full max-w-md">
               <div className="absolute -inset-4 bg-emerald-400/30 blur-3xl rounded-3xl" />
-              <div className="relative overflow-hidden rounded-3xl shadow-2xl border border-emerald-100/70 bg-emerald-900/10">
+                <div className="relative overflow-hidden rounded-3xl shadow-2xl border border-emerald-100/70 bg-emerald-900/10">
                 <motion.img
                   src="/products/12.png"
                   alt="Rooftop Garden"
@@ -356,21 +356,6 @@ const LoginPage = () => {
                   className="h-80 md:h-96 w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/70 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-emerald-50">
-                  <div>
-                    <p className="font-medium">
-                      {language === 'en'
-                        ? 'Urban Gardens Powered by Waste'
-                        : 'অবর্জনার শক্তিতে শহুরে বাগান'}
-                    </p>
-                    <p className="text-emerald-100/80">
-                      {language === 'en' ? 'Dhaka • Chattogram • Sylhet' : 'ঢাকা • চট্টগ্রাম • সিলেট'}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-emerald-500/80 px-3 py-1 text-[10px] font-semibold shadow-md">
-                    {language === 'en' ? 'Live pilot' : 'লাইভ পাইলট'}
-                  </span>
-                </div>
               </div>
             </div>
           </motion.div>
@@ -580,17 +565,7 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 text-xs md:text-sm font-medium text-emerald-800 hover:text-emerald-900 group w-fit"
-            >
-              <span className="border-b border-emerald-700/60 group-hover:border-emerald-900 transition-colors">
-                {language === 'en' ? 'Learn more' : 'আরও জানুন'}
-              </span>
-              <span className="translate-x-0 group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            </button>
+            {/* Learn more button removed as per latest design */}
           </motion.div>
         </div>
       </section>
