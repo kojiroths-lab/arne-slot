@@ -135,6 +135,20 @@ const LoginPage = () => {
               />
             </div>
 
+            {/* Hero copy */}
+            <div className="text-center mb-8 space-y-2">
+              <h1 className="text-lg md:text-2xl font-semibold text-emerald-900 leading-snug">
+                {language === 'en'
+                  ? 'Turning Salon Waste into Soil Wealth.'
+                  : 'বর্জ্য থেকে সম্পদ। মাটির জন্য নতুন প্রাণ।'}
+              </h1>
+              <p className="text-xs md:text-sm text-emerald-900/80 max-w-md mx-auto">
+                {language === 'en'
+                  ? "Bangladesh's first circular bio-stimulant. We convert keratin waste into affordable liquid nitrogen fertilizer for farmers."
+                  : 'বাংলাদেশের প্রথম সার্কুলার বায়ো-স্টিমুল্যান্ট। আমরা কেরাটিন বর্জ্যকে কৃষকের জন্য সাশ্রয়ী তরল নাইট্রোজেন সারে রূপান্তর করি।'}
+              </p>
+            </div>
+
             {/* Login Form */}
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
@@ -267,13 +281,13 @@ const LoginPage = () => {
             </p>
             <h2 className="text-2xl md:text-3xl font-semibold mb-4">
               {language === 'en'
-                ? "Greening Dhaka's Rooftops."
-                : 'ঢাকার ছাদগুলোকে সবুজে রাঙাই।'}
+                ? "Premium Care for Dhaka's Rooftops."
+                : 'ঢাকার ছাদ বাগানের জন্য প্রিমিয়াম যত্ন।'}
             </h2>
             <p className="text-sm md:text-base text-emerald-900/80 mb-6 max-w-lg">
               {language === 'en'
-                ? 'Our odorless, bio-liquid formula is perfect for urban gardening. Safe for your home, safe for the planet.'
-                : 'আমাদের গন্ধহীন জৈব তরল সার শহুরে বাগানের জন্য একদম উপযুক্ত—বাড়ির জন্য নিরাপদ, পৃথিবীর জন্যও নিরাপদ।'}
+                ? "Urban gardening isn't just a hobby; it's a lifestyle. Our 'Rooftop Bloom' formula is odorless, ready-to-spray, and designed for balconies."
+                : "শহুরে বাগান শুধুই শখ নয়, এটি একটি জীবনধারা। আমাদের 'রুফটপ ব্লুম' ফর্মুলা গন্ধহীন, ব্যবহারের জন্য প্রস্তুত এবং বারান্দার জন্য বিশেষভাবে তৈরি।"}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 text-xs md:text-sm">
@@ -281,7 +295,9 @@ const LoginPage = () => {
                 <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                   <Wind className="h-4 w-4" />
                 </div>
-                <p className="font-medium">{language === 'en' ? 'Odorless' : 'গন্ধহীন'}</p>
+                <p className="font-medium">
+                  {language === 'en' ? 'Odorless' : 'গন্ধহীন'}
+                </p>
                 <p className="text-emerald-900/70">
                   {language === 'en'
                     ? 'Ideal for balconies and rooftops in dense city blocks.'
@@ -293,7 +309,9 @@ const LoginPage = () => {
                 <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                   <SprayCan className="h-4 w-4" />
                 </div>
-                <p className="font-medium">{language === 'en' ? 'Easy Spray' : 'সহজ স্প্রে'}</p>
+                <p className="font-medium">
+                  {language === 'en' ? 'Ready-to-Spray' : 'রেডি স্প্রে'}
+                </p>
                 <p className="text-emerald-900/70">
                   {language === 'en'
                     ? 'No mixing hassles. Just spray and water as usual.'
@@ -305,7 +323,9 @@ const LoginPage = () => {
                 <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                   <ShieldCheck className="h-4 w-4" />
                 </div>
-                <p className="font-medium">{language === 'en' ? 'Non-Toxic' : 'বিষমুক্ত'}</p>
+                <p className="font-medium">
+                  {language === 'en' ? 'Child Safe' : 'নিরাপদ'}
+                </p>
                 <p className="text-emerald-900/70">
                   {language === 'en'
                     ? 'Safe around children, pets, and rooftop gatherings.'
@@ -370,59 +390,40 @@ const LoginPage = () => {
             className="space-y-5"
           >
             <p className="text-xs uppercase tracking-[0.25em] text-emerald-200 mb-2">
-              {language === 'en' ? 'The Science' : 'বিজ্ঞানের শক্তি'}
+              THE AMOR ADVANTAGE
             </p>
             <h2 className="text-2xl md:text-3xl font-semibold">
               {language === 'en'
-                ? 'Restoring Mother Earth.'
-                : 'মাটির মায়া ফিরিয়ে দেই।'}
+                ? 'The Soil Healer: 40% Cost Reduction.'
+                : 'মাটির ডাক্তার: ৪০% খরচ সাশ্রয়।'}
             </h2>
             <p className="text-sm md:text-base text-emerald-50/90 max-w-lg">
               {language === 'en'
-                ? 'We replace harmful chemical Urea with amino acids derived from Keratin waste. Every liter we produce keeps hair out of landfills and slowly rebuilds soil health for the next generation.'
-                : 'আমরা ক্ষতিকর রাসায়নিক ইউরিয়ার বদলে কেরাটিন বর্জ্য থেকে তৈরি অ্যামিনো অ্যাসিড ব্যবহার করি। প্রতিটি লিটার উৎপাদনে ল্যান্ডফিল থেকে চুল বাঁচে এবং ধীরে ধীরে মাটির মান ফিরে আসে ভবিষ্যৎ প্রজন্মের জন্য।'}
+                ? 'Farmers are trapped by expensive imported chemical fertilizers. AMOR breaks this cycle. Our Amino-Acid rich formula restores soil organic matter (currently <1.5%) and works in hours, not days.'
+                : 'দামি আমদানিকৃত রাসায়নিক সারের ফাঁদে আটকা আমাদের কৃষকরা। AMOR এই চক্র ভাঙছে। আমাদের অ্যামিনো-এসিড সমৃদ্ধ ফর্মুলা মাটির প্রাণ (জৈব কার্বন) ফিরিয়ে আনে এবং কয়েক ঘণ্টার মধ্যে কাজ করে।'}
             </p>
 
-            <div className="grid grid-cols-2 gap-4 text-xs md:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs md:text-sm">
               <div className="rounded-2xl bg-emerald-900/40 border border-emerald-300/40 p-4 flex flex-col gap-1">
                 <p className="text-emerald-100/90 font-medium">
-                  {language === 'en' ? 'Keratin to Crop' : 'কেরাটিন থেকে ফসলে'}
+                  {language === 'en' ? 'Cost Efficiency' : 'খরচ সাশ্রয়'}
                 </p>
-                <p className="text-emerald-100/80">
-                  {language === 'en'
-                    ? 'Hair and salon waste become high-value amino acids for plants.'
-                    : 'চুল ও সেলুন বর্জ্য পরিণত হয় গাছের জন্য উচ্চমূল্য অ্যামিনো অ্যাসিডে।'}
-                </p>
+                <p className="text-lg font-semibold text-emerald-50">Save 1,200 BDT</p>
+                <p className="text-emerald-100/80">Per acre/season vs Imported variants.</p>
               </div>
               <div className="rounded-2xl bg-emerald-900/40 border border-emerald-300/40 p-4 flex flex-col gap-1">
                 <p className="text-emerald-100/90 font-medium">
-                  {language === 'en' ? 'Soil Microbiome' : 'মাটির অণুজীব'}
+                  {language === 'en' ? 'Rapid Action' : 'দ্রুত কার্যকারিতা'}
                 </p>
-                <p className="text-emerald-100/80">
-                  {language === 'en'
-                    ? 'Feeds beneficial microbes instead of burning roots with salts.'
-                    : 'লবণের ক্ষতির বদলে উপকারী অণুজীবকে পুষ্টি দেয়।'}
-                </p>
+                <p className="text-lg font-semibold text-emerald-50">6-Hour Hydrolysis</p>
+                <p className="text-emerald-100/80">Instant nutrient absorption via stomata.</p>
               </div>
               <div className="rounded-2xl bg-emerald-900/40 border border-emerald-300/40 p-4 flex flex-col gap-1">
                 <p className="text-emerald-100/90 font-medium">
-                  {language === 'en' ? 'Water Efficient' : 'জল সাশ্রয়ী'}
+                  {language === 'en' ? 'Soil Health' : 'মাটির স্বাস্থ্য'}
                 </p>
-                <p className="text-emerald-100/80">
-                  {language === 'en'
-                    ? 'Improves water holding capacity and reduces runoff.'
-                    : 'মাটির পানি ধারণ ক্ষমতা বাড়ায়, পানি অপচয় কমায়।'}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-emerald-900/40 border border-emerald-300/40 p-4 flex flex-col gap-1">
-                <p className="text-emerald-100/90 font-medium">
-                  {language === 'en' ? 'Climate Positive' : 'জলবায়ু ইতিবাচক'}
-                </p>
-                <p className="text-emerald-100/80">
-                  {language === 'en'
-                    ? 'Locks carbon in biomass instead of releasing methane from landfills.'
-                    : 'ল্যান্ডফিলের মিথেনের বদলে কার্বনকে জৈব ভর হিসেবে ধরে রাখে।'}
-                </p>
+                <p className="text-lg font-semibold text-emerald-50">pH Neutral (6.5)</p>
+                <p className="text-emerald-100/80">Restores soil balance, unlike acidic Urea.</p>
               </div>
             </div>
           </motion.div>
@@ -582,7 +583,7 @@ const LoginPage = () => {
             </button>
           </div>
           <p className="text-emerald-100/70 text-[11px]">
-            © AMOR 2026. {language === 'en' ? 'All rights reserved.' : 'সর্বস্বত্ব সংরক্ষিত।'}
+            © AMOR 2026. Turning Waste to Wealth.
           </p>
         </div>
       </footer>
