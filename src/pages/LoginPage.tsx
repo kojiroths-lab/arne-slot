@@ -131,7 +131,7 @@ const LoginPage = () => {
               <img
                 src="/products/logo.png"
                 alt="AMOR"
-                className="mx-auto h-20 w-20 md:h-24 md:w-24 lg:h-28 lg:w-28 object-contain"
+                className="mx-auto h-24 w-24 md:h-28 md:w-28 lg:h-32 lg:w-32 object-contain"
               />
             </div>
 
