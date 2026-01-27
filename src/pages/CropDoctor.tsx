@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Stethoscope, Upload, Image as ImageIcon, Loader2, Sparkles, ShoppingBag } from 'lucide-react';
 import { products } from '@/data/mockData';
@@ -88,6 +88,33 @@ const CropDoctor = () => {
   const [recommendations, setRecommendations] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const STORAGE_KEY = 'cropDoctor_state_v1';
+
+  // Restore previous AI result, image, and recommendations on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        analysisResult?: string;
+        imagePreview?: string | null;
+        recommendations?: number[];
+      };
+
+      if (parsed.imagePreview) {
+        setImagePreview(parsed.imagePreview);
+      }
+      if (parsed.analysisResult) {
+        setAnalysisResult(parsed.analysisResult);
+      }
+      if (Array.isArray(parsed.recommendations)) {
+        setRecommendations(parsed.recommendations);
+      }
+    } catch (err) {
+      console.warn('Failed to restore CropDoctor state from storage:', err);
+    }
+  }, []);
+
   const handleImageSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast({
@@ -138,6 +165,18 @@ const CropDoctor = () => {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  };
+
+  const handleReset = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    setAnalysisResult('');
+    setRecommendations([]);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (err) {
+      console.warn('Failed to clear CropDoctor storage:', err);
+    }
   };
 
   const handleAnalysis = async () => {
@@ -340,6 +379,20 @@ Do not add extra keys to this JSON.`;
       setAnalysisResult(mainText);
       setRecommendations(parsedIds);
 
+      // Persist state so it survives navigation away from this page
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            analysisResult: mainText,
+            imagePreview,
+            recommendations: parsedIds,
+          }),
+        );
+      } catch (err) {
+        console.warn('Failed to persist CropDoctor state:', err);
+      }
+
       // Step 4: success toast with model name
       toast({
         title: language === 'en' ? 'Analysis Successful' : 'বিশ্লেষণ সফল',
@@ -465,26 +518,42 @@ Do not add extra keys to this JSON.`;
               </div>
 
               {/* Analyze Button */}
-              {selectedImage && (
-                <Button
-                  className="w-full mt-4"
-                  size="lg"
-                  onClick={handleAnalysis}
-                  disabled={isAnalyzing}
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {language === 'en' ? 'Consulting AI Expert...' : 'AI বিশেষজ্ঞের সাথে পরামর্শ করা হচ্ছে...'}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-5 w-5" />
-                      {language === 'en' ? 'Analyze Plant' : 'উদ্ভিদ বিশ্লেষণ করুন'}
-                    </>
-                  )}
-                </Button>
-              )}
+              <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                {selectedImage && (
+                  <Button
+                    className="flex-1"
+                    size="lg"
+                    onClick={handleAnalysis}
+                    disabled={isAnalyzing}
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        {language === 'en'
+                          ? 'Consulting AI Expert...'
+                          : 'AI বিশেষজ্ঞের সাথে পরামর্শ করা হচ্ছে...'}
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-5 w-5" />
+                        {language === 'en' ? 'Analyze Plant' : 'উদ্ভিদ বিশ্লেষণ করুন'}
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {(analysisResult || imagePreview) && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="sm:w-40"
+                    onClick={handleReset}
+                    disabled={isAnalyzing}
+                  >
+                    {language === 'en' ? 'Reset' : 'রিসেট করুন'}
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
