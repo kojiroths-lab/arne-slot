@@ -104,7 +104,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="bg-gradient-to-b from-emerald-950 via-emerald-900 to-black text-white overflow-x-hidden overflow-y-auto">
+    <div className="overflow-x-hidden overflow-y-auto">
       {/* SECTION 1: LOGIN HERO (OLD DESIGN) */}
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 p-4 relative overflow-hidden">
         {/* Language toggle */}
@@ -114,22 +114,24 @@ const LoginPage = () => {
 
         {/* Background Image Layer */}
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ backgroundImage: "url('https://images.pexels.com/photos/8125507/pexels-photo-8125507.jpeg')" }}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/images/farmer-hero.jpg')" }}
         />
+        {/* Soft white wash overlay to match old design */}
+        <div className="absolute inset-0 bg-white/70" />
 
-        <div className="relative z-10 w-full max-w-md">
+        <div className="relative z-10 w-full max-w-sm md:max-w-md">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-elevated p-8"
+            className="bg-white rounded-2xl shadow-elevated p-6 md:p-8"
           >
             {/* Logo */}
             <div className="text-center mb-8">
               <img
                 src="/products/logo.png"
                 alt="AMOR"
-                className="mx-auto h-32 w-32 object-contain"
+                className="mx-auto h-20 w-20 md:h-24 md:w-24 lg:h-28 lg:w-28 object-contain"
               />
             </div>
 
@@ -325,7 +327,7 @@ const LoginPage = () => {
               <div className="absolute -inset-4 bg-emerald-400/30 blur-3xl rounded-3xl" />
               <div className="relative overflow-hidden rounded-3xl shadow-2xl border border-emerald-100/70 bg-emerald-900/10">
                 <motion.img
-                  src="/images/rooftop.jpg"
+                  src="/products/12.png"
                   alt="Rooftop Garden"
                   initial={{ scale: 1.08, y: 0 }}
                   whileInView={{ scale: 1.02, y: -4 }}
@@ -437,7 +439,7 @@ const LoginPage = () => {
               <div className="absolute -inset-6 bg-emerald-300/30 blur-3xl rounded-3xl" />
               <div className="relative overflow-hidden rounded-3xl border border-emerald-200/60 bg-emerald-900/40 shadow-2xl">
                 <motion.img
-                  src="/images/soil.jpg"
+                  src="/products/13.png"
                   alt="Healthy Soil and Sapling"
                   initial={{ scale: 1.1, y: 8 }}
                   whileInView={{ scale: 1.02, y: 0 }}
