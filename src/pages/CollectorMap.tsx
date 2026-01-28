@@ -259,7 +259,7 @@ const CollectorMap = () => {
   }, [pendingPickups, selectedPickup, userLocation]);
 
   return (
-    <div className="relative flex flex-col h-[calc(100vh-8rem)] md:h-screen bg-background">
+    <div className="relative flex flex-col h-[calc(100vh-60px)] md:h-screen bg-background">
       {/* Header */}
       <div className="p-4 bg-background z-10">
         <div className="animate-fade-up">
@@ -275,7 +275,11 @@ const CollectorMap = () => {
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative min-h-0 pb-[220px]">
+      <div
+        className={`relative w-full z-0 ${
+          currentSalon ? 'h-[55%] md:h-full' : 'flex-1 md:h-full'
+        } md:absolute md:inset-0`}
+      >
         {userLocation && mapCenter && (
           <LeafletMap
             className="h-full w-full absolute inset-0"
@@ -292,7 +296,7 @@ const CollectorMap = () => {
           <button
             type="button"
             onClick={() => setMapCenter(userLocation)}
-            className="absolute right-4 bottom-28 md:bottom-32 z-[9000] inline-flex h-10 w-10 items-center justify-center rounded-full bg-background border border-border shadow-md hover:bg-muted transition-colors"
+            className="absolute right-4 bottom-4 md:bottom-8 z-[9000] inline-flex h-10 w-10 items-center justify-center rounded-full bg-background border border-border shadow-md hover:bg-muted transition-colors"
           >
             <span className="text-lg">📍</span>
           </button>
@@ -301,8 +305,11 @@ const CollectorMap = () => {
 
       {/* Bottom Sheet - Live Route Dashboard */}
       {currentSalon && (
-        <div className="fixed bottom-4 left-4 right-4 z-[9999] pointer-events-none">
-          <div className="pointer-events-auto mx-auto max-w-xl rounded-2xl bg-background shadow-[0_10px_40px_rgba(0,0,0,0.25)] border border-border pt-3 px-4 pb-4">
+        <div className="relative z-10 mt-2 flex-1 bg-background overflow-y-auto md:pointer-events-none md:mt-0">
+          <div className="mx-auto w-full max-w-xl rounded-t-3xl border-t border-border bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.12)] pt-2 px-4 pb-4 md:pointer-events-auto md:rounded-2xl md:border md:shadow-[0_10px_40px_rgba(0,0,0,0.25)] md:absolute md:bottom-4 md:left-4 md:w-[420px] md:max-h-[80vh]">
+            {/* Drag handle for mobile */}
+            <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-muted md:hidden" />
+
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-muted-foreground uppercase tracking-wide">
                 {language === 'en' ? 'Next Stop' : 'পরবর্তী গন্তব্য'}
@@ -419,7 +426,7 @@ const CollectorMap = () => {
       )}
     </div>
   );
-};
+}
 
 export default CollectorMap;
 
