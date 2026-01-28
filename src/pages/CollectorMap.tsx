@@ -259,7 +259,7 @@ const CollectorMap = () => {
   }, [pendingPickups, selectedPickup, userLocation]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background relative">
+    <div className="relative flex flex-col h-[calc(100vh-60px)] md:h-screen bg-background">
       {/* Header */}
       <div className="p-4 bg-background z-10">
         <div className="animate-fade-up">
@@ -274,8 +274,12 @@ const CollectorMap = () => {
         </div>
       </div>
 
-      {/* MAP CONTAINER */}
-      <div className="h-[50vh] w-full relative z-0 md:fixed md:inset-0 md:h-screen md:w-screen md:z-0">
+      {/* Map */}
+      <div
+        className={`relative w-full z-0 ${
+          currentSalon ? 'h-[55%] md:h-full' : 'flex-1 md:h-full'
+        } md:absolute md:inset-0`}
+      >
         {userLocation && mapCenter && (
           <LeafletMap
             className="h-full w-full absolute inset-0"
@@ -299,10 +303,10 @@ const CollectorMap = () => {
         )}
       </div>
 
-      {/* CARD CONTAINER */}
-      <div className="flex-1 bg-background relative z-10 md:fixed md:inset-0 md:bg-transparent md:pointer-events-none">
-        {currentSalon && (
-          <div className="p-4 md:absolute md:bottom-4 md:left-4 md:w-[420px] md:bg-background md:rounded-2xl md:shadow-xl md:pointer-events-auto md:border md:max-h-[85vh] md:overflow-y-auto">
+      {/* Bottom Sheet - Live Route Dashboard */}
+      {currentSalon && (
+        <div className="relative z-10 mt-2 flex-1 bg-background overflow-y-auto md:bg-transparent md:flex-none md:overflow-visible md:pointer-events-none md:mt-0">
+          <div className="mx-auto w-full max-w-xl rounded-t-3xl border-t border-border bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.12)] pt-2 px-4 pb-4 md:pointer-events-auto md:rounded-2xl md:border md:shadow-[0_10px_40px_rgba(0,0,0,0.25)] md:absolute md:top-4 md:left-4 md:bottom-auto md:w-[400px] md:max-h-[calc(100vh-140px)] md:overflow-y-auto z-[9999]">
             {/* Drag handle for mobile */}
             <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-muted md:hidden" />
 
@@ -418,8 +422,8 @@ const CollectorMap = () => {
               </a>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
