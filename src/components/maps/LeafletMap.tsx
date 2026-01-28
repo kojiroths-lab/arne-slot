@@ -36,6 +36,7 @@ export function LeafletMap({ className, center, zoom, markers = [], polyline, fi
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const layerRef = useRef<{ markers: L.LayerGroup; polyline?: L.Polyline } | null>(null);
+  const prevFitBoundsRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -43,6 +44,7 @@ export function LeafletMap({ className, center, zoom, markers = [], polyline, fi
     const map = L.map(containerRef.current, {
       zoomControl: true,
       attributionControl: true,
+      scrollWheelZoom: false,
     }).setView(center, zoom);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -114,6 +116,10 @@ export function LeafletMap({ className, center, zoom, markers = [], polyline, fi
   // This avoids fighting with user panning/zooming and only adjusts view explicitly.
   useEffect(() => {
     if (!mapRef.current || !fitBounds || fitBounds.length === 0) return;
+
+    const serialized = JSON.stringify(fitBounds);
+    if (prevFitBoundsRef.current === serialized) return;
+    prevFitBoundsRef.current = serialized;
 
     try {
       const bounds = L.latLngBounds(fitBounds.map(([lat, lng]) => L.latLng(lat, lng)));
