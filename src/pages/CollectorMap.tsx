@@ -3,7 +3,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import L from 'leaflet';
 import { LeafletMap, LeafletLatLng } from '@/components/maps/LeafletMap';
 import { supabase } from '@/lib/supabaseClient';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 // Custom icons
 const createIcon = (color: string) => new L.DivIcon({
@@ -18,7 +17,6 @@ const salonIcon = createIcon('#EF4444');
 
 const CollectorMap = () => {
   const { language } = useLanguage();
-  const isMobile = useIsMobile();
   const [userLocation, setUserLocation] = useState<LeafletLatLng | null>(null);
   const [pendingPickups, setPendingPickups] = useState<any[]>([]);
   const [routeCoords, setRouteCoords] = useState<LeafletLatLng[]>([]);
@@ -260,116 +258,6 @@ const CollectorMap = () => {
       .map((x) => x.pickup);
   }, [pendingPickups, selectedPickup, userLocation]);
 
-  const bottomSheetCard =
-    currentSalon && (
-      <div className="pointer-events-auto mx-auto max-w-xl rounded-2xl bg-background shadow-[0_10px_40px_rgba(0,0,0,0.25)] border border-border pt-3 px-4 pb-4">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide">
-            {language === 'en' ? 'Next Stop' : 'পরবর্তী গন্তব্য'}
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedPickup(null);
-              setRouteCoords([]);
-              setRouteStats(null);
-            }}
-            className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-2 py-0.5"
-          >
-            {language === 'en' ? 'Close' : 'বন্ধ করুন'}
-          </button>
-        </div>
-        <h2 className="text-lg font-semibold text-foreground mb-3 truncate">
-          {currentSalon.name || (language === 'en' ? 'Selected Salon' : 'নির্বাচিত সেলুন')}
-        </h2>
-
-        {/* Big stats row */}
-        <div className="flex items-center gap-6 mb-3">
-          <div className="flex items-center gap-2">
-            <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-              {/* Simple truck/van glyph */}
-              <span className="text-lg">🚚</span>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">
-                {language === 'en' ? 'ETA' : 'আনুমানিক সময়'}
-              </p>
-              <p className="text-lg font-bold text-emerald-600">
-                {durationMinutes !== null ? `${durationMinutes} min` : language === 'en' ? '—' : '—'}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs text-muted-foreground">
-              {language === 'en' ? 'Distance' : 'দূরত্ব'}
-            </p>
-            <p className="text-base font-semibold text-muted-foreground">
-              {distanceKm !== null ? `${distanceKm} km` : language === 'en' ? '—' : '—'}
-            </p>
-          </div>
-        </div>
-
-        {/* Details row */}
-        <div className="mb-3 space-y-1 text-sm">
-          <p className="text-foreground line-clamp-2">
-            {currentSalon.address || (language === 'en' ? 'No address available' : 'ঠিকানা পাওয়া যায়নি')}
-          </p>
-          <p className="text-muted-foreground">
-            {language === 'en'
-              ? `Pending: ${currentPendingKg.toFixed(1)} kg`
-              : `বকেয়া: ${currentPendingKg.toFixed(1)} কেজি`}
-          </p>
-        </div>
-
-        {/* Upcoming stops queue */}
-        {upcomingPickups.length > 0 && (
-          <div className="mb-3 border-t border-border pt-2">
-            <p className="text-xs font-medium text-muted-foreground mb-1">
-              {language === 'en' ? 'Upcoming stops' : 'পরবর্তী স্টপগুলো'}
-            </p>
-            <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
-              {upcomingPickups.slice(0, 4).map((p) => {
-                const s = p.salons;
-                const kg = Number(p.quantity_kg) || 0;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedPickup(p);
-                      buildRouteToPickup(p);
-                    }}
-                    className="w-full text-left text-xs rounded-lg px-2 py-1 hover:bg-muted flex items-center justify-between gap-2"
-                  >
-                    <span className="truncate">
-                      {s?.name || (language === 'en' ? 'Salon' : 'সেলুন')}
-                    </span>
-                    <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                      {language === 'en' ? `${kg.toFixed(1)} kg` : `${kg.toFixed(1)} কেজি`}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Action button */}
-        {mapsUrl && (
-          <a href={mapsUrl} target="_blank" rel="noreferrer" className="block w-full">
-            <button
-              type="button"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 transition-colors"
-            >
-              <span>📍</span>
-              {language === 'en' ? 'Navigate (Google Maps)' : 'গুগল ম্যাপসে নেভিগেট করুন'}
-            </button>
-          </a>
-        )}
-      </div>
-    );
-
   return (
     <div className="relative flex flex-col h-[calc(100vh-8rem)] md:h-screen bg-background">
       {/* Header */}
@@ -387,7 +275,7 @@ const CollectorMap = () => {
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative min-h-0 pb-4 md:pb-[220px]">
+      <div className="flex-1 relative min-h-0 pb-[220px]">
         {userLocation && mapCenter && (
           <LeafletMap
             className="h-full w-full absolute inset-0"
@@ -412,16 +300,121 @@ const CollectorMap = () => {
       </div>
 
       {/* Bottom Sheet - Live Route Dashboard */}
-      {currentSalon && !isMobile && (
+      {currentSalon && (
         <div className="fixed bottom-4 left-4 right-4 z-[9999] pointer-events-none">
-          {bottomSheetCard}
-        </div>
-      )}
+          <div className="pointer-events-auto mx-auto max-w-xl rounded-2xl bg-background shadow-[0_10px_40px_rgba(0,0,0,0.25)] border border-border pt-3 px-4 pb-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                {language === 'en' ? 'Next Stop' : 'পরবর্তী গন্তব্য'}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPickup(null);
+                  setRouteCoords([]);
+                  setRouteStats(null);
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground border border-border rounded-full px-2 py-0.5"
+              >
+                {language === 'en' ? 'Close' : 'বন্ধ করুন'}
+              </button>
+            </div>
+            <h2 className="text-lg font-semibold text-foreground mb-3 truncate">
+              {currentSalon.name || (language === 'en' ? 'Selected Salon' : 'নির্বাচিত সেলুন')}
+            </h2>
 
-      {/* Mobile: card below map, not overlaying it */}
-      {currentSalon && isMobile && (
-        <div className="mt-2 px-4 pb-4">
-          {bottomSheetCard}
+            {/* Big stats row */}
+            <div className="flex items-center gap-6 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  {/* Simple truck/van glyph */}
+                  <span className="text-lg">🚚</span>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    {language === 'en' ? 'ETA' : 'আনুমানিক সময়'}
+                  </p>
+                  <p className="text-lg font-bold text-emerald-600">
+                    {durationMinutes !== null ? `${durationMinutes} min` : language === 'en' ? '—' : '—'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  {language === 'en' ? 'Distance' : 'দূরত্ব'}
+                </p>
+                <p className="text-base font-semibold text-muted-foreground">
+                  {distanceKm !== null ? `${distanceKm} km` : language === 'en' ? '—' : '—'}
+                </p>
+              </div>
+            </div>
+
+            {/* Details row */}
+            <div className="mb-3 space-y-1 text-sm">
+              <p className="text-foreground line-clamp-2">
+                {currentSalon.address || (language === 'en' ? 'No address available' : 'ঠিকানা পাওয়া যায়নি')}
+              </p>
+              <p className="text-muted-foreground">
+                {language === 'en'
+                  ? `Pending: ${currentPendingKg.toFixed(1)} kg`
+                  : `বকেয়া: ${currentPendingKg.toFixed(1)} কেজি`}
+              </p>
+            </div>
+
+            {/* Upcoming stops queue */}
+            {upcomingPickups.length > 0 && (
+              <div className="mb-3 border-t border-border pt-2">
+                <p className="text-xs font-medium text-muted-foreground mb-1">
+                  {language === 'en' ? 'Upcoming stops' : 'পরবর্তী স্টপগুলো'}
+                </p>
+                <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                  {upcomingPickups.slice(0, 4).map((p) => {
+                    const s = p.salons;
+                    const kg = Number(p.quantity_kg) || 0;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPickup(p);
+                          buildRouteToPickup(p);
+                        }}
+                        className="w-full text-left text-xs rounded-lg px-2 py-1 hover:bg-muted flex items-center justify-between gap-2"
+                      >
+                        <span className="truncate">
+                          {s?.name || (language === 'en' ? 'Salon' : 'সেলুন')}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                          {language === 'en'
+                            ? `${kg.toFixed(1)} kg`
+                            : `${kg.toFixed(1)} কেজি`}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Action button */}
+            {mapsUrl && (
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="block w-full"
+              >
+                <button
+                  type="button"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 transition-colors"
+                >
+                  <span>📍</span>
+                  {language === 'en' ? 'Navigate (Google Maps)' : 'গুগল ম্যাপসে নেভিগেট করুন'}
+                </button>
+              </a>
+            )}
+          </div>
         </div>
       )}
     </div>
