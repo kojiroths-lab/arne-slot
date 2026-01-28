@@ -306,7 +306,7 @@ const CollectorMap = () => {
       {/* Bottom Sheet - Live Route Dashboard */}
       {currentSalon && (
         <div className="relative z-10 mt-2 flex-1 bg-background overflow-y-auto md:bg-transparent md:flex-none md:overflow-visible md:pointer-events-none md:mt-0">
-          <div className="mx-auto w-full max-w-xl rounded-t-3xl border-t border-border bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.12)] pt-2 px-4 pb-4 md:pointer-events-auto md:rounded-2xl md:border md:shadow-[0_10px_40px_rgba(0,0,0,0.25)] md:absolute md:bottom-6 md:left-1/2 md:-translate-x-1/2 md:w-[480px] md:max-h-[80vh]">
+          <div className="mx-auto w-full max-w-xl rounded-t-3xl border-t border-border bg-background shadow-[0_-4px_20px_rgba(0,0,0,0.12)] pt-2 px-4 pb-4 md:pointer-events-auto md:rounded-2xl md:border md:shadow-[0_10px_40px_rgba(0,0,0,0.25)] md:absolute md:top-4 md:left-4 md:bottom-auto md:w-[400px] md:max-h-[calc(100vh-140px)] md:overflow-y-auto z-[9999]">
             {/* Drag handle for mobile */}
             <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-muted md:hidden" />
 
